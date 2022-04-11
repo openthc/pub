@@ -7,7 +7,7 @@
 
 namespace Test;
 
-class A_Create_Test extends \Test\Base_Case
+class A_Create_Test extends \Test\Base
 {
 	/**
 	 * @test

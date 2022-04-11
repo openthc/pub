@@ -7,7 +7,7 @@
 
 namespace Test;
 
-class B_Update_Test extends \Test\Base_Case
+class B_Update_Test extends \Test\Base
 {
 
 	function update_account_a_post()
