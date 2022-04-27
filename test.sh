@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/bin/bash -x
 #
 # OpenTHC Test Runner
 #
 
-# set -o errexit
+set -o errexit
 set -o nounset
 
 f=$(readlink -f "$0")
@@ -15,25 +15,31 @@ output_base="webroot/test-output"
 output_main="$output_base/index.html"
 mkdir -p "$output_base"
 
+code_list=(
+	boot.php
+	api/
+	bin/
+	lib/
+	sbin/
+	test/
+	view/
+)
+
 
 #
 # Lint
 if [ ! -f "$output_base/phplint.txt" ]
 then
+
 	echo '<h1>Linting...</h1>' > "$output_main"
-	search_list=(
-		boot.php
-		api/
-		bin/
-		lib/
-		sbin/
-		test/
-		view/
-	)
-	find "${search_list[@]}" -type f -name '*.php' -exec php -l {} \; \
+
+	find "${code_list[@]}" -type f -name '*.php' -exec php -l {} \; \
 		| grep -v 'No syntax' || true \
-		>"$output_base/phplint.txt" 2>&1
+		2>&1 \
+		>"$output_base/phplint.txt"
+
 	[ -s "$output_base/phplint.txt" ] || echo "Linting OK" >"$output_base/phplint.txt"
+
 fi
 
 
@@ -58,9 +64,8 @@ if [ ! -f "$output_base/phpcpd.txt" ]
 then
 	vendor/bin/phpcpd \
 		--fuzzy \
-		--log-pmd="$output_base/phpcpd.xml" \
-		--no-ansi \
 		boot.php bin/ lib/ \
+		2>&1 \
 		> "$output_base/phpcpd.txt"
 fi
 
