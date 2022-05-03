@@ -1,0 +1,142 @@
+#
+# (c) 2022 OpenTHC, Inc.
+# This file is part of OpenTHC Pub released under MIT License
+# SPDX-License-Identifier: MIT
+#
+# OpenTHC API
+#
+
+openapi: 3.0.2
+
+info:
+  title: OpenTHC Pub API
+  description: OpenTHC Pub API reference
+  version: "420.22.123"
+  contact:
+    name: OpenTHC, Inc.
+    url: https://openthc.com/
+    email: code@openthc.com
+  license:
+    name: MIT
+  termsOfService: https://openthc.com/about/tos
+
+
+externalDocs:
+  description: "Find out more about OpenTHC"
+  url: "https://openthc.com"
+
+
+#
+# Servers
+servers:
+  - url: https://pub.openthc.example.com
+    description: Example Implementation
+  - url: https://YOUR_HOST/YOUR/PATH
+    description: You can install to sub-host or sub-path
+
+tags:
+  - name: Account
+    description: Authentication and session management
+  - name: Message
+    description: "Core System Data: Company, License, Contact"
+
+
+#
+# Componenets
+components:
+  requestBodies:
+    Account_Create:
+      description: "Create an Account"
+      content:
+        application/json: {}
+
+    Account_Update:
+      description: "Update an Account"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              crypt:
+                description: "Encrypted Data Blob, Base64"
+              nonce:
+                description: "The nonce for the encrypted data"
+
+    Message_Create:
+      description: "Create a Message to an Account"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              crypt:
+                description: "Encrypted Data Blob, Base64"
+              nonce:
+                description: "The nonce for the encrypted data"
+
+  responses:
+    Account:
+      description: "Account Information"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: "Some kind of data, an array of objects or a single object"
+              meta:
+                description: "Additional Helpful info, generally an object or array of objects"
+
+    Message:
+      description: "A Single Message"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                description: "Some kind of data, an array of objects or a single object"
+              meta:
+                description: "Additional Helpful info, generally an object or array of objects"
+  # schemas:
+  #   $ref: 'components/schema.yaml'
+
+
+#
+# Paths
+paths:
+  "/$PUBLIC_KEY":
+    post:
+      summary: "Create or Update Public Key"
+      description: "Creates and registers a public key endpoint"
+      tags: [ "Account" ]
+      requestBody:
+        description: Empty
+        required: false
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/requestBodies/Account_Create'
+                - $ref: '#/components/requestBodies/Account_Update'
+      responses:
+        200:
+          description: OK
+        201:
+          description: Created
+
+  "/$PUBLIC_KEY/$MESSAGE":
+    post:
+      summary: "Create a Message"
+      description: "Create a Message to a Public Key"
+      tags: [ "Message" ]
+      responses:
+        201:
+          description: Created
+    delete:
+      summary: "Delete a message from your incomming queue"
+      description: "Delete a Message"
+      tags: [ "Message" ]
+      responses:
+        200:
+          description: Deleted
