@@ -7,7 +7,7 @@
 
 namespace Test;
 
-class B_Update_Test extends \Test\Base
+class D_Message_Delete_Test extends \Test\Base
 {
 	protected $service_public_key = null;
 
@@ -27,7 +27,7 @@ class B_Update_Test extends \Test\Base
 	/**
 	 * @test
 	 */
-	function update_account_a_post()
+	function delete_message()
 	{
 		$pk_source = $_ENV['a_pk'];
 		$sk_source = $_ENV['a_sk'];

@@ -6,7 +6,6 @@
  * SPDX-License-Identifier: MIT
  */
 
-
 namespace Test;
 
 class C_Create_Message_Test extends \Test\Base
@@ -54,6 +53,34 @@ class C_Create_Message_Test extends \Test\Base
 		$this->assertNotEmpty($res['data']);
 		$this->assertEmpty($res['meta']['source']);
 		$this->assertEmpty($res['meta']['target']);
+
+	}
+
+	/**
+	 * Read the Message
+	 *
+	 * @test
+	 * @depends message_a_to_b
+	 */
+	function message_a_to_b_read()
+	{
+		$url = sprintf('%s/%s', $this->_api_base, \enb64($_ENV['b_pk']));
+		$req = _curl_init($url);
+		curl_setopt($req, CURLOPT_CUSTOMREQUEST, 'POST');
+		curl_setopt($req, CURLOPT_POSTFIELDS, $req_body);
+		curl_setopt($req, CURLOPT_HTTPHEADER, [
+			sprintf('content-length: %d', strlen($req_body)),
+			'content-type: text/plain',
+		]);
+		$res = curl_exec($req);
+		$inf = curl_getinfo($req);
+
+		$this->assertEquals(200, $inf['http_code']);
+		$this->assertEquals('application/json', $inf['content_type']);
+		$res = json_decode($res, true);
+		$this->assertNotEmpty($res['data']);
+
+		var_dump($res);
 
 	}
 
@@ -111,8 +138,8 @@ class C_Create_Message_Test extends \Test\Base
 		$pk_source = $_ENV['a_pk'];
 		$sk_source = $_ENV['a_sk'];
 
-		$raw = sodium_crypto_box_keypair();
-		$pk_target = sodium_crypto_box_publickey($raw);
+		$kp0 = sodium_crypto_box_keypair();
+		$pk_target = sodium_crypto_box_publickey($kp0);
 		// $sk0 = sodium_crypto_box_secretkey($raw);
 
 		$input_data = json_encode([
