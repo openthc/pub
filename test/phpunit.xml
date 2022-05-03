@@ -15,7 +15,7 @@
 	convertWarningsToExceptions="true"
 	processIsolation="false"
 	stopOnError="true"
-	stopOnFailure="false"
+	stopOnFailure="true"
 	stopOnRisky="true"
 	timeoutForSmallTests="1"
 	timeoutForMediumTests="10"

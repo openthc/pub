@@ -1,0 +1,7 @@
+#
+# PHP Static Analysis Configuration
+#
+
+parameters:
+	bootstrapFiles:
+		- %currentWorkingDirectory%/boot.php
