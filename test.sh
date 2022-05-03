@@ -6,6 +6,13 @@
 set -o errexit
 set -o nounset
 
+x=${OPENTHC_TEST_BASE:-}
+if [ -z "$x" ]
+then
+	echo "You have to define the environment first"
+	exit 1
+fi
+
 f=$(readlink -f "$0")
 d=$(dirname "$f")
 
@@ -16,13 +23,7 @@ output_main="$output_base/index.html"
 mkdir -p "$output_base"
 
 code_list=(
-	boot.php
-	api/
-	bin/
-	lib/
-	sbin/
-	test/
-	view/
+	boot.php lib/ test/
 )
 
 
@@ -44,29 +45,49 @@ fi
 
 
 #
-# PHPStan
-if [ ! -f "$output_base/phpstan.html" ]
+# PHP-CPD
+if [ ! -f "$output_base/phpcpd.txt" ]
 then
-	echo '<h1>PHPStan...</h1>' > "$output_main"
-	vendor/bin/phpstan analyze --error-format=junit --no-progress > "$output_base/phpstan.xml" || true
-	[ -f "test/phpstan.xsl" ] || curl -qs 'https://openthc.com/pub/phpstan.xsl' > "test/phpstan.xsl"
-	xsltproc \
-		--nomkdir \
-		--output "$output_base/phpstan.html" \
-		test/phpstan.xsl \
-		"$output_base/phpstan.xml"
+
+	echo '<h1>CPD Check</h1>' > "$output_main"
+
+	vendor/bin/phpcpd \
+		--fuzzy \
+		"${code_list[@]}" \
+		|| true \
+		2>&1 \
+		> "$output_base/phpcpd.txt"
+
 fi
 
 
 #
-# PHP-CPD
-if [ ! -f "$output_base/phpcpd.txt" ]
+# PHPStan
+if [ ! -f "$output_base/phpstan.html" ]
 then
-	vendor/bin/phpcpd \
-		--fuzzy \
-		boot.php bin/ lib/ \
-		2>&1 \
-		> "$output_base/phpcpd.txt"
+
+	xsl_file="test/phpstan.xsl"
+
+	echo '<h1>PHPStan...</h1>' > "$output_main"
+
+	vendor/bin/phpstan \
+		analyze \
+		--configuration=test/phpstan.neon \
+		--error-format=junit \
+		--level=2 \
+		--no-ansi \
+		--no-progress \
+		"${code_list[@]}" \
+		> "$output_base/phpstan.xml"
+
+	[ -f "$xsl_file" ] || curl -qs 'https://openthc.com/pub/phpstan.xsl' > "$xsl_file"
+
+	xsltproc \
+		--nomkdir \
+		--output "$output_base/phpstan.html" \
+		"$xsl_file" \
+		"$output_base/phpstan.xml"
+
 fi
 
 
@@ -75,11 +96,11 @@ fi
 echo '<h1>PHPUnit...</h1>' > "$output_main"
 vendor/bin/phpunit \
 	--configuration "test/phpunit.xml" \
-	--verbose \
 	--log-junit "$output_base/phpunit.xml" \
 	--testdox-html "$output_base/testdox.html" \
 	--testdox-text "$output_base/testdox.txt" \
 	--testdox-xml "$output_base/testdox.xml" \
+	--verbose \
 	test/ \
 	"$@" \
 	2>&1 | tee "$output_base/phpunit.txt"
