@@ -21,6 +21,42 @@ define('OPENTHC_PUB_SK', \OpenTHC\Config::get('pub/secret'));
 define('OPENTHC_PUB_PK', \OpenTHC\Config::get('pub/public'));
 
 /**
+ * Error Handler
+ */
+function _eh($ex, $em=null, $ef=null, $el=null, $ec=null) {
+
+	while (ob_get_level() > 0) { ob_end_clean(); }
+
+	header('HTTP/1.1 500 Internal Error', true, 500);
+	header('content-type: text/plain');
+
+	$msg = [];
+	$msg[] = 'Internal Error [PUB-035]';
+	if (is_numeric($ex)) {
+		// Error Code
+		$msg[] = sprintf('Error: %s [%d]', $em, $ex);
+	} elseif (is_object($ex)) {
+		// Exception
+		$msg[] = sprintf('Exception: %s', $ex->getMessage());
+		$ef = $ex->getFile();
+		$el = $ex->getLine();
+	}
+
+	if (!empty($ef)) {
+		$ef = substr($ef, strlen($ef) / 2); // don't show full path
+		$msg[] = sprintf('File: ...%s:%d', $ef, $el);
+	}
+
+	error_log(implode('; ', $msg));
+
+	echo implode("\n", $msg);
+
+	exit(1);
+
+}
+
+
+/**
  * base64 Helper
  */
 function enb64($x)
