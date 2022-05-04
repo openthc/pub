@@ -64,23 +64,19 @@ class C_Create_Message_Test extends \Test\Base
 	 */
 	function message_a_to_b_read()
 	{
-		$url = sprintf('%s/%s', $this->_api_base, \enb64($_ENV['b_pk']));
-		$req = _curl_init($url);
-		curl_setopt($req, CURLOPT_CUSTOMREQUEST, 'POST');
-		curl_setopt($req, CURLOPT_POSTFIELDS, $req_body);
-		curl_setopt($req, CURLOPT_HTTPHEADER, [
-			sprintf('content-length: %d', strlen($req_body)),
-			'content-type: text/plain',
-		]);
-		$res = curl_exec($req);
-		$inf = curl_getinfo($req);
+		$res = $this->get_message_zero($_ENV['b_pk']);
+		// Can I Decrypt?
+		$msg = $res['data'];
 
-		$this->assertEquals(200, $inf['http_code']);
-		$this->assertEquals('application/json', $inf['content_type']);
-		$res = json_decode($res, true);
-		$this->assertNotEmpty($res['data']);
+		// Keypair
+		$kp1 = sodium_crypto_box_keypair_from_secretkey_and_publickey($_ENV['b_sk'], deb64($msg['origin']));
+		$plain_data = sodium_crypto_box_open(deb64($msg['crypt']), deb64($msg['nonce']), $kp1);
 
-		var_dump($res);
+		$this->assertNotEmpty($plain_data);
+		$msg = json_decode($plain_data, true);
+		$this->assertNotEmpty($msg);
+		$this->assertNotEmpty($msg['@context']);
+		$this->assertEquals('http://openthc.org/api/v2017', $msg['@context']);
 
 	}
 

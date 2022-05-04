@@ -11,6 +11,9 @@ class B_Update_Test extends \Test\Base
 {
 	protected $service_public_key = null;
 
+	/**
+	 *
+	 */
 	function setup() : void
 	{
 		// Get Service Public Key

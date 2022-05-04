@@ -11,6 +11,9 @@ class D_Message_Delete_Test extends \Test\Base
 {
 	protected $service_public_key = null;
 
+	/**
+	 *
+	 */
 	function setup() : void
 	{
 		// Get Service Public Key
@@ -20,129 +23,153 @@ class D_Message_Delete_Test extends \Test\Base
 		// $this->assertEquals(200, $inf['http_code']);
 		// $this->assertEquals('text/plain; charset=utf-8', $inf['content_type']);
 		// $this->assertEquals(43, strlen($res));
-		$this->service_public_key = \deb64($res);
+		$this->service_public_key = deb64($res);
 
 	}
 
 	/**
+	 * Does delete work?
+	 *
 	 * @test
 	 */
 	function delete_message()
 	{
-		$pk_source = $_ENV['a_pk'];
-		$sk_source = $_ENV['a_sk'];
+		$res = $this->get_message_zero($_ENV['a_pk']);
+		$msg = $res['data'];
 
-		$input_data = json_encode([
-			'id' => \enb64($pk_source),
-			'name' => 'TEST LICENSE A',
-			'note' => "MARKDOWN TEXT HERE?\nInclude email and phone maybe?",
-			'public-incoming-url' => sprintf('https://openthc.pub/%s', \enb64($pk_source)),
-		]);
-
-		$spk = sodium_crypto_box_keypair_from_secretkey_and_publickey($sk_source, $this->service_public_key);
+		$kp1 = sodium_crypto_box_keypair_from_secretkey_and_publickey($_ENV['a_sk'], $this->service_public_key);
 		$nonce_data = random_bytes(SODIUM_CRYPTO_BOX_NONCEBYTES);
-		$crypt_data = sodium_crypto_box($input_data, $nonce_data, $spk);
+		$input_data = json_encode([
+			'action' => 'DELETE'
+		]); //  http_build_query([ 'a' => 'delete' ]);
+		$crypt_data = sodium_crypto_box($input_data, $nonce_data, $kp1);
 
-		$post_data = [
-			'nonce' => enb64($nonce_data),
-			'crypt' => enb64($crypt_data)
+		$arg = [
+			'n' => enb64($nonce_data),
+			'c' => enb64($crypt_data)
 		];
 
 		// Post to "myself" with encrypted message for Service
-		$url = sprintf('%s/%s', $this->_api_base, \enb64($pk_source));
+		$url = sprintf('%s/%s/%s?%s', $this->_api_base, enb64($_ENV['a_pk']), $msg['id'], http_build_query($arg));
 		$req = _curl_init($url);
-		curl_setopt($req, CURLOPT_POST, true);
-		curl_setopt($req, CURLOPT_POSTFIELDS, $post_data);
-		// curl_setopt($req, CURLOPT_HTTPHEADER, [
-			// sprintf('content-length: %d', strlen($json_data)),
-			// 'content-type: application/json',
-		// ]);
+		curl_setopt($req, CURLOPT_CUSTOMREQUEST, 'DELETE');
 		$res = curl_exec($req);
 		$inf = curl_getinfo($req);
 
 		$this->assertEquals(200, $inf['http_code']);
 		$this->assertEquals('application/json', $inf['content_type']);
 
+		$res = json_decode($res, true);
+		$this->assertNotEmpty($res);
+
 	}
 
 	/**
+	 * Does delete give a 400 if your argument parameter is bad?
+	 *
 	 * @test
 	 */
-	function update_account_b_post_text()
+	function delete_message_bad_arg()
 	{
-		$pk_source = $_ENV['b_pk'];
-		$sk_source = $_ENV['b_sk'];
+		$res = $this->get_message_zero($_ENV['a_pk']);
+		$msg = $res['data'];
 
-		$input_data = json_encode([
-			'id' => \enb64($pk_source),
-			'name' => 'TEST LICENSE B',
-			'note' => "MARKDOWN TEXT HERE?\nInclude email and phone maybe?",
-			'public-incoming-url' => sprintf('https://openthc.pub/%s', \enb64($pk_source)),
-		]);
-
-		$spk = sodium_crypto_box_keypair_from_secretkey_and_publickey($sk_source, $this->service_public_key);
+		$kp1 = sodium_crypto_box_keypair_from_secretkey_and_publickey($_ENV['a_sk'], $this->service_public_key);
 		$nonce_data = random_bytes(SODIUM_CRYPTO_BOX_NONCEBYTES);
-		$crypt_data = sodium_crypto_box($input_data, $nonce_data, $spk);
+		$input_data = 'INVALID-DELETE-INVALID';
+		$crypt_data = sodium_crypto_box($input_data, $nonce_data, $kp1);
 
-		$text_body = sprintf('%s:%s'
-			, enb64($nonce_data)
-			, enb64($crypt_data)
-		);
+		$arg = [
+			'n' => enb64($nonce_data),
+			'c' => enb64($crypt_data)
+		];
 
 		// Post to "myself" with encrypted message for Service
-		$url = sprintf('%s/%s', $this->_api_base, \enb64($pk_source));
+		$url = sprintf('%s/%s/%s?%s', $this->_api_base, enb64($_ENV['a_pk']), $msg['id'], http_build_query($arg));
 		$req = _curl_init($url);
-		curl_setopt($req, CURLOPT_CUSTOMREQUEST, 'POST');
-		curl_setopt($req, CURLOPT_POSTFIELDS, $text_body);
-		curl_setopt($req, CURLOPT_HTTPHEADER, [
-			sprintf('content-length: %d', strlen($text_body)),
-			'content-type: text/plain',
-		]);
+		curl_setopt($req, CURLOPT_CUSTOMREQUEST, 'DELETE');
 		$res = curl_exec($req);
 		$inf = curl_getinfo($req);
 
-		$this->assertEquals(200, $inf['http_code']);
+		$this->assertEquals(400, $inf['http_code']);
 		$this->assertEquals('application/json', $inf['content_type']);
+
+		$res = json_decode($res, true);
+		$this->assertNotEmpty($res);
 
 	}
 
 	/**
+	 * Should 403 if you use a key that doesn't match
+	 *
 	 * @test
 	 */
-	function update_account_c_post_json()
+	function delete_message_bad_key()
 	{
-		$pk_source = $_ENV['c_pk'];
-		$sk_source = $_ENV['c_sk'];
+		$res = $this->get_message_zero($_ENV['a_pk']);
+		$msg = $res['data'];
 
-		$input_data = json_encode([
-			'id' => \enb64($pk_source),
-			'name' => 'TEST LICENSE C',
-			'note' => "MARKDOWN TEXT HERE?\nInclude email and phone maybe?",
-			'public-incoming-url' => sprintf('https://openthc.pub/%s', \enb64($pk_source)),
-		]);
-
-		$spk = sodium_crypto_box_keypair_from_secretkey_and_publickey($sk_source, $this->service_public_key);
+		$kp1 = sodium_crypto_box_keypair_from_secretkey_and_publickey($_ENV['a_sk'], $this->service_public_key);
 		$nonce_data = random_bytes(SODIUM_CRYPTO_BOX_NONCEBYTES);
-		$crypt_data = sodium_crypto_box($input_data, $nonce_data, $spk);
+		$input_data = json_encode([
+			'action' => 'DELETE'
+		]); //  http_build_query([ 'a' => 'delete' ]);
+		$crypt_data = sodium_crypto_box($input_data, $nonce_data, $kp1);
 
-		$json_data = json_encode([
-			'nonce' => enb64($nonce_data),
-			'crypt' => enb64($crypt_data)
-		]);
+		$arg = [
+			'n' => enb64($nonce_data),
+			'c' => enb64($crypt_data)
+		];
 
-		$url = sprintf('%s/%s', $this->_api_base, \enb64($pk_source));
+		// Post to "myself" with encrypted message for Service
+		$url = sprintf('%s/%s/%s?%s', $this->_api_base, enb64($_ENV['b_pk']), $msg['id'], http_build_query($arg));
 		$req = _curl_init($url);
-		curl_setopt($req, CURLOPT_CUSTOMREQUEST, 'POST');
-		curl_setopt($req, CURLOPT_POSTFIELDS, $json_data);
-		curl_setopt($req, CURLOPT_HTTPHEADER, [
-			sprintf('content-length: %d', strlen($json_data)),
-			'content-type: application/json',
-		]);
+		curl_setopt($req, CURLOPT_CUSTOMREQUEST, 'DELETE');
 		$res = curl_exec($req);
 		$inf = curl_getinfo($req);
 
-		$this->assertEquals(200, $inf['http_code']);
+		$this->assertEquals(403, $inf['http_code']);
 		$this->assertEquals('application/json', $inf['content_type']);
+
+		$res = json_decode($res, true);
+		$this->assertNotEmpty($res);
+
+	}
+
+	/**
+	 * Return a 404 if choosing someone else's message or a non-existant one
+	 *
+	 * @test
+	 */
+	function delete_message_bad_msg()
+	{
+		$res = $this->get_message_zero($_ENV['b_pk']);
+		$msg = $res['data'];
+
+		$kp1 = sodium_crypto_box_keypair_from_secretkey_and_publickey($_ENV['a_sk'], $this->service_public_key);
+		$nonce_data = random_bytes(SODIUM_CRYPTO_BOX_NONCEBYTES);
+		$input_data = json_encode([
+			'action' => 'DELETE'
+		]); //  http_build_query([ 'a' => 'delete' ]);
+		$crypt_data = sodium_crypto_box($input_data, $nonce_data, $kp1);
+
+		$arg = [
+			'n' => enb64($nonce_data),
+			'c' => enb64($crypt_data)
+		];
+
+		// Post to "myself" with encrypted message for Service
+		$url = sprintf('%s/%s/%s?%s', $this->_api_base, enb64($_ENV['a_pk']), $msg['id'], http_build_query($arg));
+		$req = _curl_init($url);
+		curl_setopt($req, CURLOPT_CUSTOMREQUEST, 'DELETE');
+		$res = curl_exec($req);
+		$inf = curl_getinfo($req);
+
+		$this->assertEquals(404, $inf['http_code']);
+		$this->assertEquals('application/json', $inf['content_type']);
+
+		$res = json_decode($res, true);
+		$this->assertNotEmpty($res);
 
 	}
 

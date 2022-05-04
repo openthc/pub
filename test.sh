@@ -54,9 +54,9 @@ then
 	vendor/bin/phpcpd \
 		--fuzzy \
 		"${code_list[@]}" \
-		|| true \
 		2>&1 \
-		> "$output_base/phpcpd.txt"
+		> "$output_base/phpcpd.txt" \
+		|| true
 
 fi
 
@@ -78,7 +78,8 @@ then
 		--no-ansi \
 		--no-progress \
 		"${code_list[@]}" \
-		> "$output_base/phpstan.xml"
+		> "$output_base/phpstan.xml" \
+		|| true
 
 	[ -f "$xsl_file" ] || curl -qs 'https://openthc.com/pub/phpstan.xsl' > "$xsl_file"
 
