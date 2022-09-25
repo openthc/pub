@@ -14,7 +14,7 @@
 	},
 	"require": {
 		"php": ">=7.3.0",
-		"edoceo/radix": "dev-master",
+		"edoceo/radix": "2021.0.0",
 		"openthc/common": "dev-master"
 	},
 	"require-dev": {
