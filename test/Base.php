@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-namespace Test;
+namespace OpenTHC\Pub\Test;
 
 class Base extends \PHPUnit\Framework\TestCase
 {

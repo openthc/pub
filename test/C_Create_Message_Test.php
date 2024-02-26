@@ -6,7 +6,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-namespace Test;
+namespace OpenTHC\Pub\Test;
 
 class C_Create_Message_Test extends \Test\Base
 {

@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-namespace Test;
+namespace OpenTHC\Pub\Test;
 
 class D_Message_Delete_Test extends \Test\Base
 {

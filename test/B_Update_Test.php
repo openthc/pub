@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-namespace Test;
+namespace OpenTHC\Pub\Test;
 
 class B_Update_Test extends \Test\Base
 {
