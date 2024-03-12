@@ -17,6 +17,10 @@ if ( ! \OpenTHC\Config::init(APP_ROOT) ) {
 	_exit_html_fail('<h1>Invalid Application Configuration [ABS-015]</h1>', 500);
 }
 
+define('OPENTHC_SERVICE_ID', \OpenTHC\Config::get('openthc/pub/id'));
+define('OPENTHC_SERVICE_ORIGIN', \OpenTHC\Config::get('openthc/pub/origin'));
+
+// @deprecated
 define('OPENTHC_PUB_SK', \OpenTHC\Config::get('pub/secret'));
 define('OPENTHC_PUB_PK', \OpenTHC\Config::get('pub/public'));
 
@@ -75,9 +79,9 @@ function _dbc()
 	static $dbc;
 
 	if (empty($dbc)) {
-
 		$cfg = \OpenTHC\Config::get('database/pub');
-		$dbc = new \Edoceo\Radix\DB\SQL(sprintf('sqlite:%s/var/pub.sqlite', APP_ROOT));
+		$dsn = sprintf('pgsql:host=%s;dbname=%s', $cfg['hostname'], $cfg['database']);
+		$dbc = new \Edoceo\Radix\DB\SQL($dsn, $cfg['username'], $cfg['password']);
 	}
 
 	return $dbc;
