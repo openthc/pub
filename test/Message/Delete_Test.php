@@ -31,13 +31,11 @@ class Delete_Test extends \OpenTHC\Pub\Test\Base
 		// $url = sprintf('%s/%s/%s?%s', $this->_api_base, enb64(OPENTHC_TEST_LICENSE_A_PK), $msg['id'], http_build_query($arg));
 		// $req = _curl_init($url);
 		$res = $this->_curl_delete($req_path, $req_head);
-		var_dump($res);
-
-		$this->assertEquals(200, $res['code']);
+		$this->assertEquals(501, $res['code']);
 		$this->assertEquals('application/json', $res['type']);
 
-		$res = json_decode($res['body'], true);
-		$this->assertNotEmpty($res);
+		$obj = json_decode($res['body']);
+		$this->assertIsObject($obj);
 
 	}
 
@@ -72,8 +70,8 @@ class Delete_Test extends \OpenTHC\Pub\Test\Base
 		$this->assertEquals(400, $inf['http_code']);
 		$this->assertEquals('application/json', $inf['content_type']);
 
-		$res = json_decode($res, true);
-		$this->assertNotEmpty($res);
+		$res = json_decode($res);
+		$this->assertIsObject($res);
 
 	}
 

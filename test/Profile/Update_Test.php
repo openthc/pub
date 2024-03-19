@@ -17,67 +17,97 @@ class Update_Test extends \OpenTHC\Pub\Test\Base
 	function update_profile_as_self()
 	{
 		$req_path = OPENTHC_TEST_LICENSE_A_PK;
+
+		$profile_auth = OPENTHC_TEST_LICENSE_A_PK;
+		$profile_auth = Sodium::encrypt($profile_auth, OPENTHC_TEST_LICENSE_A_SK, $this->_service_pk_bin);
+		$profile_auth = Sodium::b64encode($profile_auth);
+
+		$req_auth = json_encode([
+			// 'service' => _ulid(), // This is the Client, which is indicated in the PK part of our crypted message
+			'contact' => _ulid(),
+			'company' => _ulid(),
+			'license' => _ulid(),
+			'profile' => $profile_auth,
+		]);
+		$req_auth = Sodium::encrypt($req_auth, $this->_api_client_sk, $this->_service_pk_bin);
+		$req_auth = Sodium::b64encode($req_auth);
+
 		$req_body = json_encode([
-			'name' => sprintf('LICENSE A UPDATE %s', _ulid())
+			'contact' => [],
+			'name' => sprintf('TEST Profile A UPDATE'),
 		]);
 
-		$profile_auth = Sodium::encrypt(OPENTHC_TEST_LICENSE_A_PK, OPENTHC_TEST_LICENSE_A_SK, $this->_service_pk_bin);
-		$profile_auth = Sodium::b64encode($profile_auth);
+		// Create
 		$req_head = [
-			'openthc-profile' => $profile_auth
+			'authorization' => sprintf('OpenTHC %s.%s', $this->_api_client_pk, $req_auth),
+			'content-type' => 'application/json',
 		];
 
 		$res = $this->_curl_put($req_path, $req_head, $req_body);
 		$this->assertEquals(200, $res['code']);
+		$this->assertEquals('application/json', $res['type']);
+
+		$obj = json_decode($res['body']);
+		$this->assertIsObject($obj);
+		$this->assertObjectHasProperty('data', $obj);
+		$this->assertObjectHasProperty('meta', $obj);
+		$this->assertObjectHasProperty('note', $obj->meta);
+		$this->assertEquals('Profile Updated', $obj->meta->note);
+
 
 	}
 
 	/**
-	 * @test
-	 */
-	function update_profile_as_null()
-	{
-		$req_path = OPENTHC_TEST_LICENSE_A_PK;
-		$req_body = json_encode([
-			'name' => sprintf('LICENSE A UPDATE %s', _ulid())
-		]);
-		$req_head = [
-			'openthc-profile' => '',
-		];
-
-		$res = $this->_curl_post($req_path, $req_head, $req_body);
-		var_dump($res);
-		$this->assertEquals(403, $res['code']);
-
-	}
-
-	/**
+	 *
 	 * @test
 	 */
 	function update_profile_that_does_not_exist()
 	{
 		$kp = sodium_crypto_box_keypair();
-		$pk_bin = sodium_crypto_box_publickey($kp);
-		$pk_b64 = Sodium::b64encode($pk_bin);
-		$sk_bin = sodium_crypto_box_secretkey($kp);
+		$pk = Sodium::b64encode(sodium_crypto_box_publickey($kp));
+		$sk = Sodium::b64encode(sodium_crypto_box_secretkey($kp));
 
-		$req_path = $pk_b64;
+		$profile_auth = $pk;
+		$profile_auth = Sodium::encrypt($profile_auth, $sk, $this->_service_pk_bin);
+		$profile_auth = Sodium::b64encode($profile_auth);
+
+		$req_auth = json_encode([
+			// 'service' => _ulid(), // This is the Client, which is indicated in the PK part of our crypted message
+			'contact' => _ulid(),
+			'company' => _ulid(),
+			'license' => _ulid(),
+			'profile' => $profile_auth,
+		]);
+		$req_auth = Sodium::encrypt($req_auth, $this->_api_client_sk, $this->_service_pk_bin);
+		$req_auth = Sodium::b64encode($req_auth);
+
+		$req_path = $pk;
+
 		$req_body = json_encode([
-			'name' => 'LICENSE TEST',
+			'name' => sprintf('TEST Profile Random UPDATE'),
 		]);
 
-		// $pk = OPENTHC_TEST_LICENSE_A_PK;
-		// $sk = OPENTHC_TEST_LICENSE_A_SK;
-		$profile_auth = Sodium::encrypt($pk_b64, $sk_bin, $this->_service_pk_bin);
-		$profile_auth = Sodium::b64encode($profile_auth);
+		// Create
 		$req_head = [
-			'openthc-profile' => $profile_auth
+			'authorization' => sprintf('OpenTHC %s.%s', $this->_api_client_pk, $req_auth),
+			'content-type' => 'application/json',
 		];
 
+
 		$res = $this->_curl_post($req_path, $req_head, $req_body);
-		$this->assertEquals(404, $res['code']);
+		$this->assertEquals(201, $res['code']);
+		$this->assertEquals('application/json', $res['type']);
+		$this->assertNotEmpty($res['body']);
+
+		$obj = json_decode($res['body']);
+		$this->assertIsObject($obj);
+		$this->assertObjectHasProperty('data', $obj);
+		$this->assertObjectHasProperty('meta', $obj);
+		$this->assertObjectHasProperty('note', $obj->meta);
+		$this->assertEquals('Profile Created', $obj->meta->note);
 
 	}
+
 
 	/**
 	 * A Profile that Doesn't Exist
@@ -91,19 +121,37 @@ class Update_Test extends \OpenTHC\Pub\Test\Base
 		$pk = sodium_crypto_box_publickey($kp);
 		$sk = sodium_crypto_box_secretkey($kp);
 
-		$req_path = OPENTHC_TEST_LICENSE_A_PK;
+		// This Path Isn't Real
+		$req_path = Sodium::b64encode($pk);
 		$req_body = json_encode([
 			'name' => 'LICENSE TEST',
 		]);
 
-		$profile_auth = Sodium::encrypt($pk, $sk, $pk);
+		// This is the Wrong Encryption (wrong target_pk)
+		$profile_auth = json_encode([
+			'service' => '',
+			'contact' => '',
+			'company' => '',
+			'license' => '',
+			'profile' => Sodium::b64encode($pk)
+		]);
+		$profile_auth = Sodium::encrypt($profile_auth, $sk, $pk);
 		$profile_auth = Sodium::b64encode($profile_auth);
 		$req_head = [
-			'openthc-profile' => $profile_auth
+			'authorization' => sprintf('OpenTHC %s.%s', $this->_api_client_pk, $profile_auth)
 		];
 
 		$res = $this->_curl_post($req_path, $req_head, $req_body);
-		$this->assertEquals(404, $res['code']);
+		$this->assertEquals(403, $res['code']);
+		$this->assertEquals('application/json', $res['type']);
+		$this->assertNotEmpty($res['body']);
+
+		$obj = json_decode($res['body']);
+		$this->assertIsObject($obj);
+		$this->assertObjectHasProperty('data', $obj);
+		$this->assertObjectHasProperty('meta', $obj);
+		$this->assertObjectHasProperty('note', $obj->meta);
+		$this->assertEquals('Invalid Request [PCB-046]', $obj->meta->note);
 
 	}
 

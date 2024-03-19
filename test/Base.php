@@ -76,7 +76,7 @@ class Base extends \PHPUnit\Framework\TestCase
 	function _curl_header_fix($head0=[])
 	{
 		$head1 = array_merge([
-			'openthc-service' => $this->_service_auth,
+			'openthc-test' => '1',
 		], $head0);
 
 		$head2 = [];
@@ -136,7 +136,7 @@ class Base extends \PHPUnit\Framework\TestCase
 			'content-type' => 'text/plain',
 		], $head));
 
-		$url =
+		$url = sprintf('%s/%s', $this->_api_base, $path);
 		$req = _curl_init($url);
 		curl_setopt($req, CURLOPT_CUSTOMREQUEST, 'PUT');
 		curl_setopt($req, CURLOPT_POSTFIELDS, $body);

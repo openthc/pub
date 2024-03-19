@@ -5,3 +5,12 @@
 parameters:
 	bootstrapFiles:
 		- %currentWorkingDirectory%/boot.php
+	level: 6
+	paths:
+		- ../etc
+		- ../lib
+		- ../test
+		- ../webroot
+	scanDirectories:
+		- ../vendor
+	tipsOfTheDay: false

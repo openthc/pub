@@ -22,99 +22,103 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 		$dbc->query('DELETE FROM profile WHERE id = :pk', [ ':pk' => OPENTHC_TEST_LICENSE_C_PK ]);
 	}
 
-	/**
-	 * @test
-	 */
-	function create_account_a()
+	function account_does_not_exist()
 	{
-		$res = $this->_curl_get(OPENTHC_TEST_LICENSE_A_PK);
-		$this->assertEquals(404, $res['code']);
-		$this->assertEquals('application/json', $res['type']);
+		$rand_kp = sodium_crypto_box_keypair();
+		$rand_pk_bin = sodium_crypto_box_publickey($rand_kp);
 
-		// Ask again as browser, for HTML
-		$res = $this->_curl_get(OPENTHC_TEST_LICENSE_A_PK, [
-			'accept' => 'text/html'
-		]);
-		$this->assertEquals(404, $res['code']);
-		$this->assertEquals('text/html; charset=utf-8', strtolower($res['type']));
-
-		$profile_auth = Sodium::encrypt(OPENTHC_TEST_LICENSE_A_PK, OPENTHC_TEST_LICENSE_A_SK, $this->_service_pk_bin);
-		$profile_auth = Sodium::b64encode($profile_auth);
-
-		// Empty POST to Create
-		$req_head = [
-			'openthc-profile' => $profile_auth,
-			'content-type' => 'application/json', // ' => OPENTHC_TEST_LICENSE_A_PK,
-			// 'name' => 'TEST Create Account',
+		$profile_list = [
+			OPENTHC_TEST_LICENSE_A_PK,
+			OPENTHC_TEST_LICENSE_B_PK,
+			OPENTHC_TEST_LICENSE_C_PK,
+			Sodium::b64encode($rand_pk_bin),
+			_ulid(),
+			'ANOTHER_INVALID_NAME',
+			'and/a/really/invalid$name',
 		];
-		$req_body = json_encode([
-			'contact' => [],
-			'name' => 'TEST Create Account',
-		]);
-		// $req_body = \OpenTHC\Sodium::encrypt($req_body, OPENTHC_TEST_LICENSE_A_SK, OPENTHC_PUB_PK);
-		$res = $this->_curl_post(OPENTHC_TEST_LICENSE_A_PK, $req_head, $req_body);
-		$this->assertEquals(201, $res['code']);
-		$this->assertEquals('application/json', $res['type']);
-		$res = json_decode($res['body'], true);
-		$this->assertEquals(OPENTHC_TEST_LICENSE_A_PK, $res['data']);
 
-		$dbc = _dbc();
-		$chk = $dbc->fetchOne('SELECT id FROM profile WHERE id = :pk', [ ':pk' => OPENTHC_TEST_LICENSE_A_PK ]);
-		$this->assertEquals(OPENTHC_TEST_LICENSE_A_PK, $chk);
+		foreach ($profile_list as $p) {
 
-	}
+			$res = $this->_curl_get($p);
+			$this->assertEquals(404, $res['code']);
+			$this->assertEquals('application/json', $res['type']);
 
-	/**
-	 * @test
-	 */
-	function create_account_b()
-	{
-		$url = sprintf('%s/%s', $this->_api_base, OPENTHC_TEST_LICENSE_B_PK);
-		$req = _curl_init($url);
-		$res = curl_exec($req);
-		$inf = curl_getinfo($req);
-		$this->assertEquals(404, $inf['http_code']);
+			// Ask again as browser, for HTML
+			$req_path = $p;
+			$res = $this->_curl_get($req_path, [
+				'accept' => 'text/html'
+			]);
+			$this->assertEquals(404, $res['code']);
+			$this->assertEquals('text/html; charset=utf-8', strtolower($res['type']));
 
-		// Empty POST to Create
-		$req = _curl_init($url);
-		curl_setopt($req, CURLOPT_CUSTOMREQUEST, 'POST');
-		$res = curl_exec($req);
-		$inf = curl_getinfo($req);
-		$this->assertEquals(201, $inf['http_code']);
-		$this->assertEquals('application/json', $inf['content_type']);
-		$res = json_decode($res, true);
-		$this->assertEquals(OPENTHC_TEST_LICENSE_B_PK, $res['data']);
-
-		$dbc = _dbc();
-		$chk = $dbc->fetchOne('SELECT id FROM profile WHERE id = :pk', [ ':pk' => OPENTHC_TEST_LICENSE_B_PK ]);
-		$this->assertEquals(OPENTHC_TEST_LICENSE_B_PK, $chk);
+		}
 
 	}
 
 	/**
 	 * @test
 	 */
-	function create_account_c()
+	function create_profile_abc()
 	{
-		$url = sprintf('%s/%s', $this->_api_base, OPENTHC_TEST_LICENSE_C_PK);
-		$req = _curl_init($url);
-		$res = curl_exec($req);
-		$inf = curl_getinfo($req);
-		$this->assertEquals(404, $inf['http_code']);
+		$profile_list = [
+			[
+				'pk' => OPENTHC_TEST_LICENSE_A_PK,
+				'sk' => OPENTHC_TEST_LICENSE_A_SK,
+				'name' => 'LICENSE_A',
+			],
+			[
+				'pk' => OPENTHC_TEST_LICENSE_B_PK,
+				'sk' => OPENTHC_TEST_LICENSE_B_SK,
+				'name' => 'LICENSE_B',
+			],
+			[
+				'pk' => OPENTHC_TEST_LICENSE_C_PK,
+				'sk' => OPENTHC_TEST_LICENSE_C_SK,
+				'name' => 'LICENSE_C',
+			],
+		];
 
-		// Empty POST to Create
-		$req = _curl_init($url);
-		curl_setopt($req, CURLOPT_CUSTOMREQUEST, 'POST');
-		$res = curl_exec($req);
-		$inf = curl_getinfo($req);
-		$this->assertEquals(201, $inf['http_code']);
-		$this->assertEquals('application/json', $inf['content_type']);
-		$res = json_decode($res, true);
-		$this->assertEquals(OPENTHC_TEST_LICENSE_C_PK, $res['data']);
+		foreach ($profile_list as $p) {
 
-		$dbc = _dbc();
-		$chk = $dbc->fetchOne('SELECT id FROM profile WHERE id = :pk', [ ':pk' => OPENTHC_TEST_LICENSE_C_PK ]);
-		$this->assertEquals(OPENTHC_TEST_LICENSE_C_PK, $chk);
+			$req_path = $p['pk'];
+
+			$profile_data = json_encode([
+				'contact' => [],
+				'name' => sprintf('TEST Profile %s', $p['name']),
+			]);
+
+			$profile_auth = $p['pk'];;
+			$profile_auth = Sodium::encrypt($p['pk'], $p['sk'], $this->_service_pk_bin);
+
+			$req_auth = json_encode([
+				'service' => _ulid(),
+				'contact' => _ulid(),
+				'company' => _ulid(),
+				'license' => _ulid(),
+				'profile' => Sodium::b64encode($profile_auth),
+			]);
+			$req_auth = Sodium::encrypt($req_auth, $this->_api_client_sk, $this->_service_pk_bin);
+			$req_auth = Sodium::b64encode($req_auth);
+
+			$req_body = $profile_data;
+
+			// Create
+			$req_head = [
+				'authorization' => sprintf('OpenTHC %s.%s', $this->_api_client_pk, $req_auth),
+				'content-type' => 'application/json',
+			];
+
+			$res = $this->_curl_post($req_path, $req_head, $req_body);
+			$this->assertEquals(201, $res['code']);
+			$this->assertEquals('application/json', $res['type']);
+			$res = json_decode($res['body'], true);
+			$this->assertEquals($p['pk'], $res['data']);
+
+			$dbc = _dbc();
+			$chk = $dbc->fetchOne('SELECT id FROM profile WHERE id = :pk', [ ':pk' => $p['pk'] ]);
+			$this->assertEquals($p['pk'], $chk);
+
+		}
 
 	}
 

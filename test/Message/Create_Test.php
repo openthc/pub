@@ -8,6 +8,8 @@
 
 namespace OpenTHC\Pub\Test\Message;
 
+use OpenTHC\Sodium;
+
 class Create_Test extends \OpenTHC\Pub\Test\Base
 {
 	static function setupBeforeClass() : void
@@ -23,7 +25,58 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 	/**
 	 * @test
 	 */
-	function message_a_to_b()
+	function create_a_to_public()
+	{
+		$message_file = sprintf('%s.json', _ulid());
+		$message_seed = sprintf('%s.%s', OPENTHC_TEST_LICENSE_A_PK, $message_file);
+		$message_seed = sodium_crypto_generichash($message_seed, '', SODIUM_CRYPTO_GENERICHASH_KEYBYTES);
+		$message_kp = sodium_crypto_box_seed_keypair($message_seed);
+		$message_pk = sodium_crypto_box_publickey($message_kp);
+		$message_sk = sodium_crypto_box_secretkey($message_kp);
+
+		$message_auth = Sodium::b64encode($message_pk); // OPENTHC_TEST_LICENSE_A_PK;
+		$message_auth = Sodium::encrypt($message_pk, $message_sk, $this->_service_pk_bin);
+
+		$req_auth = json_encode([
+			'service' => _ulid(),
+			'contact' => _ulid(),
+			'company' => _ulid(),
+			'license' => _ulid(),
+			'message' => Sodium::b64encode($message_auth),
+		]);
+		$req_auth = Sodium::encrypt($req_auth, $this->_api_client_sk, $this->_service_pk_bin);
+		$req_auth = Sodium::b64encode($req_auth);
+
+		$message_data = json_encode([
+			'@version' => 'TEST',
+			'inventory' => [],
+			'product' => [],
+		]);
+
+		$req_head = [
+			'authorization' => sprintf('OpenTHC %s.%s', $this->_api_client_pk, $req_auth),
+			'content-type' => 'application/json',
+		];
+
+		$message_path = Sodium::b64encode($message_pk);
+
+		$url = sprintf('%s/%s', $message_path, $message_file);
+		$res = $this->_curl_post($url, $req_head, $req_body);
+		$this->assertEquals(201, $res['code']);
+		$this->assertEquals('application/json', $res['type']);
+
+		$obj = json_decode($res['body']);
+		$this->assertIsObject($obj);
+		$this->assertObjectHasProperty('data', $obj);
+		$this->assertObjectHasProperty('meta', $obj);
+		$this->assertEquals($url, $obj->meta->path);
+
+	}
+
+	/**
+	 * @test
+	 */
+	function message_a_to_b_plain()
 	{
 		$pk_source_b64 = OPENTHC_TEST_LICENSE_A_PK;
 		$pk_source_bin = \OpenTHC\Sodium::b64decode($pk_source_b64);
@@ -32,7 +85,24 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 		$pk_target_b64 = OPENTHC_TEST_LICENSE_B_PK;
 		$pk_target_bin = \OpenTHC\Sodium::b64decode($pk_target_b64);
 
-		$input_data = json_encode([
+		$req_path = sprintf('%s/%s.json', OPENTHC_TEST_LICENSE_B_PK, _ulid());
+
+		$req_auth = json_encode([
+			'service' => _ulid(),
+			'contact' => _ulid(),
+			'company' => _ulid(),
+			'license' => _ulid(),
+			// 'message' => $message_auth,
+		]);
+		$req_auth = Sodium::encrypt($req_auth, $this->_api_client_sk, $this->_service_pk_bin);
+		$req_auth = Sodium::b64encode($req_auth);
+
+		$req_head = [
+			'authorization' => sprintf('OpenTHC %s.%s', $this->_api_client_pk, $req_auth),
+			'content-type' => 'application/json',
+		];
+
+		$req_body = json_encode([
 			'@context' => 'http://openthc.org/api/v2017',
 			'inventory' => [],
 			'product' => [],
@@ -40,31 +110,32 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 			'lab_result' => [],
 		]);
 
-		$spk = sodium_crypto_box_keypair_from_secretkey_and_publickey($sk_source_bin, $pk_target_bin);
-		$nonce_data = random_bytes(SODIUM_CRYPTO_BOX_NONCEBYTES);
-		$crypt_data = sodium_crypto_box($input_data, $nonce_data, $spk);
-
-		// Encrypted Data
-		$req_body = \OpenTHC\Sodium::b64encode($nonce_data . $crypt_data);
-		$req_head = [
-			'content-type' => 'text/plain',
-		];
-
 		// Write to B-Public-Key a message named A-Public-Key
-		$url = sprintf('%s/%s', $pk_target_b64, $pk_source_b64);
-		$res = $this->_curl_post($url, $req_head, $req_body);
+		$res = $this->_curl_post($req_path, $req_head, $req_body);
 		$this->assertEquals(201, $res['code']);
 		$this->assertEquals('application/json', $res['type']);
 
-		$res = json_decode($res['body'], true);
-		$this->assertNotEmpty($res['data']);
-		$this->assertEmpty($res['meta']['source']);
-		$this->assertEmpty($res['meta']['target']);
+		$obj = json_decode($res['body']);
+		var_dump($obj);
+		$this->assertIsObject($obj);
+		$this->assertObjectHasProperty('data', $obj);
+		$this->assertObjectHasProperty('meta', $obj);
+
+		// Write A Second Time, Should Fail
+		$res = $this->_curl_post($req_path, $req_head, $req_body);
+		$this->assertEquals(409, $res['code']);
+		$this->assertEquals('application/json', $res['type']);
+
+		$obj = json_decode($res['body']);
+		var_dump($obj);
+		$this->assertIsObject($obj);
+		$this->assertObjectHasProperty('data', $obj);
+		$this->assertObjectHasProperty('meta', $obj);
 
 	}
 
 	/**
-	 * Read the Message
+	 * Profile A Should be Able To Read
 	 *
 	 * @test
 	 * @depends message_a_to_b
@@ -136,38 +207,69 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 	/**
 	 * @test
 	 */
-	function message_a_to_random()
+	function message_a_to_random_crypt()
 	{
-		$source_pk_b64 = OPENTHC_TEST_LICENSE_A_PK;
-		$source_pk_bin = \OpenTHC\Sodium::b64decode($source_pk_b64);
-		$source_sk_b64 = OPENTHC_TEST_LICENSE_A_SK;
-		$source_sk_bin = \OpenTHC\Sodium::b64decode($source_sk_b64);
+		$target_kp0 = sodium_crypto_box_keypair();
+		$target_pk_bin = sodium_crypto_box_publickey($target_kp0);
+		$target_pk_b64 = \OpenTHC\Sodium::b64encode($target_pk_bin);
 
-		$kp0 = sodium_crypto_box_keypair();
-		$target_pk_bin = sodium_crypto_box_publickey($kp0);
-		$target_pk_b64 =\OpenTHC\Sodium::b64encode($target_pk_bin);
-
-		$input_data = json_encode([
+		$req_body = json_encode([
 			'@context' => 'http://openthc.org/api/v2017',
 			'inventory' => [],
 			'product' => [],
 			'variety' => [],
 			'lab_result' => [],
 		]);
+		$req_body = Sodium::encrypt($req_body, OPENTHC_TEST_LICENSE_A_SK, $target_pk_bin);
+		// $req_body = Sodium::b64encode($req_body);
 
-		// Encrypted Data
-		$req_path = sprintf('%s/%s', $target_pk_b64, $source_pk_b64);
-		$req_body = \OpenTHC\Sodium::encrypt($input_data, $source_sk_bin, $target_pk_bin);
+		$message_kp0 = sodium_crypto_box_keypair();
+		$message_pk_bin = sodium_crypto_box_publickey($message_kp0);
+		$message_sk_bin = sodium_crypto_box_secretkey($message_kp0);
+		$message_pk_b64 = \OpenTHC\Sodium::b64encode($message_pk_bin);
+
+		$message_auth = $message_pk_b64; // Sodium::b64encode($message_pk_bin);
+		$message_auth = Sodium::encrypt($message_auth, $message_sk_bin, $this->_service_pk_bin);
+		$message_auth = Sodium::b64encode($message_auth);
+
+		$req_auth = json_encode([
+			'service' => _ulid(),
+			'contact' => _ulid(),
+			'company' => _ulid(),
+			'license' => _ulid(),
+			'message' => $message_auth,
+		]);
+		$req_auth = Sodium::encrypt($req_auth, $this->_api_client_sk, $this->_service_pk_bin);
+		$req_auth = Sodium::b64encode($req_auth);
+
+		$req_path = sprintf('%s/%s.bin', $message_pk_b64, _ulid());
 		$req_head = [
-			'content-type' => 'text/plain',
+			'authorization' => sprintf('OpenTHC %s.%s', $this->_api_client_pk, $req_auth),
+			'content-type' => 'application/octet-stream',
 		];
-
 		$res = $this->_curl_post($req_path, $req_head, $req_body);
+		// var_dump($res);
 		$this->assertEquals(201, $res['code']);
 		$this->assertEquals('application/json', $res['type']);
 
-		$res = json_decode($res['body'], true);
-		$this->assertNotEmpty($res['data']);
+		$obj = json_decode($res['body']);
+		// var_dump($obj);
+		$this->assertIsObject($obj);
+		$this->assertObjectHasProperty('data', $obj);
+		$this->assertObjectHasProperty('meta', $obj);
+		$this->assertEquals($req_path, $obj->meta->path);
+
+		// Now Get It and Decrypt
+		// Ensuring that the Bytes are Good?
+		$res = $this->_curl_get($req_path);
+		$this->assertEquals(200, $res['code']);
+		$this->assertEquals('application/octet-stream', $res['type']);
+
+		// Decrypt It
+		$sk = sodium_crypto_box_secretkey($target_kp0);
+		$pk = OPENTHC_TEST_LICENSE_A_PK;
+		$res_data = Sodium::encrypt($res['body'], $sk, $pk);
+		$this->assertNotEmpty($res_data);
 
 	}
 
