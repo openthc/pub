@@ -68,7 +68,7 @@ html {
 <h1>Test Result ${test_date}</h1>
 <h2>${test_note}</h2>
 <p>Linting: <a href="phplint.txt">phplint.txt</a></p>
-<p>PHPCPD: <a href="phpcpd.txt">phpcpd.txt</a></p>
+<p>PHPMD: <a href="phpmd.html">phpmd.html</a></p>
 <p>PHPStan: <a href="phpstan.xml">phpstan.xml</a> and <a href="phpstan.html">phpstan.html</a></p>
 <p>PHPUnit: <a href="phpunit.txt">phpunit.txt</a>, <a href="phpunit.xml">phpunit.xml</a> and <a href="phpunit.html">phpunit.html</a></p>
 <p>Textdox: <a href="testdox.txt">testdox.txt</a>, <a href="testdox.xml">testdox.xml</a> and <a href="testdox.html">testdox.html</a></p>

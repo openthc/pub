@@ -12,66 +12,102 @@ use OpenTHC\Sodium;
 class Delete_Test extends \OpenTHC\Pub\Test\Base
 {
 	/**
-	 * Does delete work?
-	 *
 	 * @test
 	 */
-	function delete_message()
+	function create_message() : string
 	{
-		$msg = $this->get_message_zero(OPENTHC_TEST_LICENSE_A_SK, OPENTHC_TEST_LICENSE_A_PK);
+		$seed = sodium_crypto_generichash('TEST MESSAGE TO DELETE', '', SODIUM_CRYPTO_GENERICHASH_KEYBYTES);
+		$message_kp = sodium_crypto_box_seed_keypair($seed);
+		$message_pk = sodium_crypto_box_publickey($message_kp);
+		$message_sk = sodium_crypto_box_secretkey($message_kp);
 
-		$profile_auth = Sodium::encrypt(OPENTHC_TEST_LICENSE_A_PK, OPENTHC_TEST_LICENSE_A_SK, $this->_service_pk_bin);
-		$profile_auth = Sodium::b64encode($profile_auth);
+		$msg['name'] = sprintf('%s.txt', _ulid());
+		$msg['path'] = Sodium::b64encode($message_pk);
 
-		// Post to "myself" with encrypted message for Service
-		$req_path = $msg['id']; // sprintf('%s/%s', OPENTHC_TEST_LICENSE_A_PK, $msg['id']);
+		$message_auth = Sodium::b64encode($message_pk);
+		$message_auth = Sodium::encrypt($message_auth, $message_sk, $this->_service_pk_bin);
+		$message_auth = Sodium::b64encode($message_auth);
+		$req_auth = $this->create_req_auth([
+			'message' => $message_auth
+		]);
+
+		$req_path = sprintf('%s/%s', $msg['path'], $msg['name']);
+
+		$req_body = 'TEST MESSAGE';
+
 		$req_head = [
-			'openthc-profile' => $profile_auth,
+			'authorization' => sprintf('OpenTHC %s.%s', $this->_api_client_pk, $req_auth),
+			'content-type' => 'text/plain',
 		];
-		// $url = sprintf('%s/%s/%s?%s', $this->_api_base, enb64(OPENTHC_TEST_LICENSE_A_PK), $msg['id'], http_build_query($arg));
-		// $req = _curl_init($url);
-		$res = $this->_curl_delete($req_path, $req_head);
-		$this->assertEquals(501, $res['code']);
+
+
+		$res = $this->_curl_post($req_path, $req_head, $req_body);
+		$this->assertEquals(201, $res['code']);
 		$this->assertEquals('application/json', $res['type']);
 
 		$obj = json_decode($res['body']);
 		$this->assertIsObject($obj);
+		$this->assertObjectHasProperty('data', $obj);
+		$this->assertObjectHasProperty('meta', $obj);
+		$this->assertEquals($req_path, $obj->data);
 
+		return $obj->data;
+
+	}
+
+	/**
+	 * Does delete work?
+	 *
+	 * @test
+	 * @depends create_message
+	 */
+	function missing_auth_box(string $msg_path) : string
+	{
+		$res = $this->_curl_get($msg_path);
+		$this->assertEquals(200, $res['code']);
+		$this->assertEquals('text/plain;charset=UTF-8', $res['type']);
+
+		$res = $this->_curl_delete($msg_path);
+		$this->assertEquals(400, $res['code']);
+		$this->assertEquals('application/json', $res['type']);
+
+		$obj = json_decode($res['body']);
+		$this->assertIsObject($obj);
+		$this->assertObjectHasProperty('data', $obj);
+		$this->assertObjectHasProperty('meta', $obj);
+
+		return $msg_path;
 	}
 
 	/**
 	 * Does delete give a 400 if your argument parameter is bad?
 	 *
 	 * @test
+	 * @depends missing_auth_box
 	 */
-	function delete_message_bad_arg()
+	function missing_message_auth_box(string $msg_path) : string
 	{
-		$res = $this->get_message_zero(OPENTHC_TEST_LICENSE_A_SK, OPENTHC_TEST_LICENSE_A_PK);
-		$msg = $res['data'];
+		$res = $this->_curl_get($msg_path);
+		$this->assertEquals(200, $res['code']);
+		$this->assertEquals('text/plain;charset=UTF-8', $res['type']);
 
-		$sk = Sodium::b64decode(OPENTHC_TEST_LICENSE_A_SK);
-		$kp1 = sodium_crypto_box_keypair_from_secretkey_and_publickey($sk, $this->_service_pk_bin);
-		$nonce_data = random_bytes(SODIUM_CRYPTO_BOX_NONCEBYTES);
-		$input_data = 'INVALID-DELETE-INVALID';
-		$crypt_data = sodium_crypto_box($input_data, $nonce_data, $kp1);
-
-		$arg = [
-			'n' => enb64($nonce_data),
-			'c' => enb64($crypt_data)
+		$req_auth = $this->create_req_auth();
+		$req_head = [
+			'authorization' => sprintf('OpenTHC %s.%s', $this->_api_client_pk, $req_auth),
 		];
 
-		// Post to "myself" with encrypted message for Service
-		$url = sprintf('%s/%s/%s?%s', $this->_api_base, enb64(OPENTHC_TEST_LICENSE_A_PK), $msg['id'], http_build_query($arg));
-		$req = _curl_init($url);
-		curl_setopt($req, CURLOPT_CUSTOMREQUEST, 'DELETE');
-		$res = curl_exec($req);
-		$inf = curl_getinfo($req);
+		$res = $this->_curl_delete($msg_path, $req_head);
+		$this->assertEquals(400, $res['code']);
+		$this->assertEquals('application/json', $res['type']);
 
-		$this->assertEquals(400, $inf['http_code']);
-		$this->assertEquals('application/json', $inf['content_type']);
+		$obj = json_decode($res['body']);
+		$this->assertIsObject($obj);
+		$this->assertObjectHasProperty('data', $obj);
+		$this->assertObjectHasProperty('meta', $obj);
+		$this->assertObjectHasProperty('note', $obj->meta);
+		$this->assertEquals('Invalid Request [PCM-177]', $obj->meta->note);
 
-		$res = json_decode($res);
-		$this->assertIsObject($res);
+		return $msg_path;
 
 	}
 
@@ -79,37 +115,40 @@ class Delete_Test extends \OpenTHC\Pub\Test\Base
 	 * Should 403 if you use a key that doesn't match
 	 *
 	 * @test
+	 * @depends missing_message_auth_box
 	 */
-	function delete_message_bad_key()
+	function incorrect_message_auth_box(string $msg_path) : string
 	{
-		$res = $this->get_message_zero(OPENTHC_TEST_LICENSE_A_SK, OPENTHC_TEST_LICENSE_A_PK);
-		$msg = $res['data'];
+		$res = $this->_curl_get($msg_path);
+		$this->assertEquals(200, $res['code']);
+		$this->assertEquals('text/plain;charset=UTF-8', $res['type']);
 
-		$sk = Sodium::b64decode(OPENTHC_TEST_LICENSE_A_SK);
-		$kp1 = sodium_crypto_box_keypair_from_secretkey_and_publickey($sk, $this->_service_pk_bin);
-		$nonce_data = random_bytes(SODIUM_CRYPTO_BOX_NONCEBYTES);
-		$input_data = json_encode([
-			'action' => 'DELETE'
-		]); //  http_build_query([ 'a' => 'delete' ]);
-		$crypt_data = sodium_crypto_box($input_data, $nonce_data, $kp1);
+		// Message Authentication
+		$message_kp = sodium_crypto_box_keypair();
+		$message_pk = sodium_crypto_box_publickey($message_kp);
+		$message_sk = sodium_crypto_box_secretkey($message_kp);
 
-		$arg = [
-			'n' => enb64($nonce_data),
-			'c' => enb64($crypt_data)
+		$message_auth = Sodium::b64encode($message_pk);
+		$message_auth = Sodium::encrypt($message_auth, $message_sk, $this->_service_pk_bin);
+		$message_auth = Sodium::b64encode($message_auth);
+
+		$req_auth = $this->create_req_auth([
+			'message' => $message_auth
+		]);
+		$req_head = [
+			'authorization' => sprintf('OpenTHC %s.%s', $this->_api_client_pk, $req_auth),
 		];
 
-		// Post to "myself" with encrypted message for Service
-		$url = sprintf('%s/%s/%s?%s', $this->_api_base, enb64(OPENTHC_TEST_LICENSE_B_PK), $msg['id'], http_build_query($arg));
-		$req = _curl_init($url);
-		curl_setopt($req, CURLOPT_CUSTOMREQUEST, 'DELETE');
-		$res = curl_exec($req);
-		$inf = curl_getinfo($req);
+		$res = $this->_curl_delete($msg_path, $req_head);
+		$this->assertEquals(403, $res['code']);
+		$this->assertEquals('application/json', $res['type']);
 
-		$this->assertEquals(403, $inf['http_code']);
-		$this->assertEquals('application/json', $inf['content_type']);
+		$obj = json_decode($res['body']);
+		$this->assertIsObject($obj);
+		$this->assertObjectHasProperty('data', $obj);
+		$this->assertObjectHasProperty('meta', $obj);
 
-		$res = json_decode($res, true);
-		$this->assertNotEmpty($res);
+		return $msg_path;
 
 	}
 
@@ -117,37 +156,90 @@ class Delete_Test extends \OpenTHC\Pub\Test\Base
 	 * Return a 404 if choosing someone else's message or a non-existant one
 	 *
 	 * @test
+	 * @depends incorrect_message_auth_box
 	 */
-	function delete_message_bad_msg()
+	function delete(string $msg_path) : void
 	{
-		$res = $this->get_message_zero(OPENTHC_TEST_LICENSE_B_SK, OPENTHC_TEST_LICENSE_B_PK);
-		$msg = $res['data'];
+		$seed = sodium_crypto_generichash('TEST MESSAGE TO DELETE', '', SODIUM_CRYPTO_GENERICHASH_KEYBYTES);
+		$message_kp = sodium_crypto_box_seed_keypair($seed);
+		$message_pk = sodium_crypto_box_publickey($message_kp);
+		$message_sk = sodium_crypto_box_secretkey($message_kp);
 
-		$sk = Sodium::b64decode(OPENTHC_TEST_LICENSE_A_SK);
-		$kp1 = sodium_crypto_box_keypair_from_secretkey_and_publickey($sk, $this->_service_pk_bin);
-		$nonce_data = random_bytes(SODIUM_CRYPTO_BOX_NONCEBYTES);
-		$input_data = json_encode([
-			'action' => 'DELETE'
-		]); //  http_build_query([ 'a' => 'delete' ]);
-		$crypt_data = sodium_crypto_box($input_data, $nonce_data, $kp1);
+		$message_auth = Sodium::b64encode($message_pk);
+		$message_auth = Sodium::encrypt($message_auth, $message_sk, $this->_service_pk_bin);
+		$message_auth = Sodium::b64encode($message_auth);
+		$req_auth = $this->create_req_auth([
+			'message' => $message_auth
+		]);
 
-		$arg = [
-			'n' => enb64($nonce_data),
-			'c' => enb64($crypt_data)
+		$res = $this->_curl_get($msg_path, $req_auth);
+		$this->assertEquals(200, $res['code']);
+		$this->assertEquals('text/plain;charset=UTF-8', $res['type']);
+
+		$req_auth = $this->create_req_auth([
+			'message' => $message_auth
+		]);
+		$req_head = [
+			'authorization' => sprintf('OpenTHC %s.%s', $this->_api_client_pk, $req_auth),
 		];
 
-		// Post to "myself" with encrypted message for Service
-		$url = sprintf('%s/%s/%s?%s', $this->_api_base, enb64(OPENTHC_TEST_LICENSE_A_PK), $msg['id'], http_build_query($arg));
-		$req = _curl_init($url);
-		curl_setopt($req, CURLOPT_CUSTOMREQUEST, 'DELETE');
-		$res = curl_exec($req);
-		$inf = curl_getinfo($req);
+		$res = $this->_curl_delete($msg_path, $req_head);
+		$this->assertEquals(200, $res['code']);
+		$this->assertEquals('application/json', $res['type']);
 
-		$this->assertEquals(404, $inf['http_code']);
-		$this->assertEquals('application/json', $inf['content_type']);
+		$obj = json_decode($res['body']);
+		$this->assertIsObject($obj);
+		$this->assertObjectHasProperty('data', $obj);
+		$this->assertObjectHasProperty('meta', $obj);
 
-		$res = json_decode($res, true);
-		$this->assertNotEmpty($res);
+
+		$res = $this->_curl_get($msg_path);
+		$this->assertEquals(404, $res['code']);
+		$this->assertEquals('application/json', $res['type']);
+
+		$obj = json_decode($res['body']);
+		$this->assertIsObject($obj);
+		$this->assertObjectHasProperty('data', $obj);
+		$this->assertObjectHasProperty('meta', $obj);
+		$this->assertEquals('Message Not Found [PCM-130]', $obj->meta->note);
+
+	}
+
+	/**
+	 * @twest
+	 */
+	function not_found() : void
+	{
+		$message_kp = sodium_crypto_box_keypair();
+		$message_pk = sodium_crypto_box_publickey($message_kp);
+		$message_sk = sodium_crypto_box_secretkey($message_kp);
+
+		$req_path = sprintf('%s/%s.txt', Sodium::b64encode($message_pk), _ulid());
+
+		$res = $this->_curl_get($req_path);
+		$this->assertEquals(404, $res['code']);
+		$this->assertEquals('application/json', $res['type']);
+
+		// Message Authentication
+		$message_auth = Sodium::b64encode($message_pk);
+		$message_auth = Sodium::encrypt($message_auth, $message_sk, $this->_service_pk_bin);
+		$message_auth = Sodium::b64encode($message_auth);
+
+		$req_auth = $this->create_req_auth([
+			// 'message' => $message_auth
+		]);
+		$req_head = [
+			// 'authorization' => sprintf('OpenTHC %s.%s', $this->_api_client_pk, $req_auth),
+		];
+
+		$res = $this->_curl_delete($req_path, $req_head);
+		$this->assertEquals(404, $res['code']);
+		$this->assertEquals('application/json', $res['type']);
+
+		$obj = json_decode($res['body']);
+		$this->assertIsObject($obj);
+		$this->assertObjectHasProperty('data', $obj);
+		$this->assertObjectHasProperty('meta', $obj);
 
 	}
 

@@ -39,15 +39,6 @@ class Base extends \PHPUnit\Framework\TestCase
 		$this->_service_sk_b64 = \OpenTHC\Config::get('openthc/pub/secret');
 		$this->_service_sk_bin = Sodium::b64decode($this->_service_sk_b64);
 
-		$a = json_encode([
-			'service' => $this->_api_client_pk,
-			'contact' => '',
-			'company' => '',
-			'license' => '',
-		]);
-		$a = Sodium::encrypt($a, $this->_api_client_sk, $this->_service_pk_bin);
-		$this->_service_auth = Sodium::b64encode($a);
-
 	}
 
 	function setup() : void
@@ -76,6 +67,7 @@ class Base extends \PHPUnit\Framework\TestCase
 	function _curl_header_fix($head0=[])
 	{
 		$head1 = array_merge([
+			'accept' => 'application/json',
 			'openthc-test' => '1',
 		], $head0);
 
@@ -151,6 +143,25 @@ class Base extends \PHPUnit\Framework\TestCase
 		];
 	}
 
+	/**
+	 *
+	 */
+	function create_req_auth($add=[])
+	{
+		$req_auth = array_merge([
+			'service' => _ulid(),
+			'contact' => _ulid(),
+			'company' => _ulid(),
+			'license' => _ulid(),
+			// 'message' => Sodium::b64encode($message_auth),
+		], $add);
+
+		$req_auth = json_encode($req_auth);
+		$req_auth = Sodium::encrypt($req_auth, $this->_api_client_sk, $this->_service_pk_bin);
+		$req_auth = Sodium::b64encode($req_auth);
+
+		return $req_auth;
+	}
 
 
 	/**

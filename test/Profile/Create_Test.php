@@ -22,6 +22,10 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 		$dbc->query('DELETE FROM profile WHERE id = :pk', [ ':pk' => OPENTHC_TEST_LICENSE_C_PK ]);
 	}
 
+	/**
+	 * @test
+	 * @group account
+	 */
 	function account_does_not_exist()
 	{
 		$rand_kp = sodium_crypto_box_keypair();
@@ -49,7 +53,7 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 				'accept' => 'text/html'
 			]);
 			$this->assertEquals(404, $res['code']);
-			$this->assertEquals('text/html; charset=utf-8', strtolower($res['type']));
+			$this->assertEquals('text/html;charset=utf-8', strtolower($res['type']));
 
 		}
 
