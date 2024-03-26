@@ -20,9 +20,7 @@ if ( ! \OpenTHC\Config::init(APP_ROOT) ) {
 define('OPENTHC_SERVICE_ID', \OpenTHC\Config::get('openthc/pub/id'));
 define('OPENTHC_SERVICE_ORIGIN', \OpenTHC\Config::get('openthc/pub/origin'));
 
-// @deprecated
-define('OPENTHC_PUB_SK', \OpenTHC\Config::get('pub/secret'));
-define('OPENTHC_PUB_PK', \OpenTHC\Config::get('pub/public'));
+define('OPENTHC_PUB_PK', \OpenTHC\Config::get('openthc/pub/public'));
 
 /**
  * Error Handler
@@ -85,6 +83,25 @@ function _dbc()
 	}
 
 	return $dbc;
+
+}
+
+function _rdb()
+{
+	static $rdb;
+
+	if (empty($rdb)) {
+
+		$cfg = \OpenTHC\Config::get('database/pub');
+		// $rdb = \Redis();
+		// $cfg = \OpenTHC\Config::get('redis');
+		$rdb = new \Redis();
+		$rdb->connect('127.0.0.1', '6379');
+		// $rdb->connect($cfg['hostname'], $cfg['port']);
+
+	}
+
+	return $rdb;
 
 }
 
