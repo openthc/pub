@@ -125,18 +125,19 @@ class Message extends Base
 			':pk' => $message_path,
 		]);
 		if (empty($chk)) {
+			$ret_data = [
+				'data' => null,
+				'meta' => [ 'note' => 'Message Not Found [PCM-130]' ]
+			];
 			switch ($want_type) {
 				case 'text/html':
-					$RES = $RES->withStatus($ret_code);
-					return $RES->write(sprintf('<h1>%s</h1>', __h($ret_data['meta']['note'])));
+					$RES = $RES->withStatus(404);
+					return $RES->write(sprintf('<h1>%s</h1>', $ret_data['meta']['note']));
 					break;
 				default:
 			}
 
-			return $RES->withJSON([
-				'data' => null,
-				'meta' => [ 'note' => 'Message Not Found [PCM-130]' ]
-			], 404);
+			return $RES->withJSON($ret_data, 404);
 		}
 
 		return $this->sendMessage($RES, $message_path);
