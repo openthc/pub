@@ -992,12 +992,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/openthc/common.git",
-                "reference": "78a07ec84d9975bdccd03d41763208e5ec01389b"
+                "reference": "f0f50316a79655c02e4f88344d12807188318053"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/openthc/common/zipball/78a07ec84d9975bdccd03d41763208e5ec01389b",
-                "reference": "78a07ec84d9975bdccd03d41763208e5ec01389b",
+                "url": "https://api.github.com/repos/openthc/common/zipball/f0f50316a79655c02e4f88344d12807188318053",
+                "reference": "f0f50316a79655c02e4f88344d12807188318053",
                 "shasum": ""
             },
             "require": {
@@ -1051,7 +1051,7 @@
                 "issues": "https://github.com/openthc/common/issues",
                 "source": "https://github.com/openthc/common/tree/master"
             },
-            "time": "2024-03-15T18:06:37+00:00"
+            "time": "2024-03-21T22:16:39+00:00"
         },
         {
             "name": "phplang/scope-exit",
@@ -2016,16 +2016,16 @@
     "packages-dev": [
         {
             "name": "composer/pcre",
-            "version": "3.1.2",
+            "version": "3.1.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/pcre.git",
-                "reference": "4775f35b2d70865807c89d32c8e7385b86eb0ace"
+                "reference": "5b16e25a5355f1f3afdfc2f954a0a80aec4826a8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/pcre/zipball/4775f35b2d70865807c89d32c8e7385b86eb0ace",
-                "reference": "4775f35b2d70865807c89d32c8e7385b86eb0ace",
+                "url": "https://api.github.com/repos/composer/pcre/zipball/5b16e25a5355f1f3afdfc2f954a0a80aec4826a8",
+                "reference": "5b16e25a5355f1f3afdfc2f954a0a80aec4826a8",
                 "shasum": ""
             },
             "require": {
@@ -2067,7 +2067,7 @@
             ],
             "support": {
                 "issues": "https://github.com/composer/pcre/issues",
-                "source": "https://github.com/composer/pcre/tree/3.1.2"
+                "source": "https://github.com/composer/pcre/tree/3.1.3"
             },
             "funding": [
                 {
@@ -2083,7 +2083,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-03-07T15:38:35+00:00"
+            "time": "2024-03-19T10:26:25+00:00"
         },
         {
             "name": "composer/xdebug-handler",
