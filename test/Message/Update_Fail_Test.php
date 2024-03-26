@@ -70,7 +70,7 @@ class Update_Fail_Test extends \OpenTHC\Pub\Test\Base
 	 * @test
 	 * @depends create_message
 	 */
-	function update_message_fail(string $path)
+	function update_message_fail(string $req_path)
 	{
 		// New Auth
 		$message_kp = sodium_crypto_box_keypair();
@@ -93,7 +93,11 @@ class Update_Fail_Test extends \OpenTHC\Pub\Test\Base
 		// Update
 		$req_body = 'TEST UPDATE';
 
-		$req_path = sprintf('%s/%s', $message_path, $message_file);
+		$req_head = [
+			'authorization' => sprintf('OpenTHC %s.%s', $this->_api_client_pk, $req_auth),
+			'content-type' => 'text/plain',
+		];
+
 		$res = $this->_curl_post($req_path, $req_head, $req_body);
 		$this->assertEquals(403, $res['code']);
 		$this->assertEquals('application/json', $res['type']);
@@ -102,18 +106,7 @@ class Update_Fail_Test extends \OpenTHC\Pub\Test\Base
 		$this->assertIsObject($obj);
 		$this->assertObjectHasProperty('data', $obj);
 		$this->assertObjectHasProperty('meta', $obj);
-		$this->assertEquals($req_path, $obj->data);
-
-		// $res = $this->_curl_get($req_path);
-		// $this->assertEquals(200, $res['code']);
-		// $this->assertEquals('text/plain;charset=UTF-8', $res['type']);
-
-		// $obj = json_decode($res['body']);
-		// $this->assertIsObject($obj);
-		// $this->assertObjectHasProperty('data', $obj);
-		// $this->assertObjectHasProperty('meta', $obj);
-
-		// $res = $this
+		$this->assertEquals("Invalid Request [PCM-187]", $obj->meta->note);
 
 	}
 }
