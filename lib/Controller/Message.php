@@ -199,6 +199,7 @@ class Message extends Base
 			case 'application/json':
 			case 'application/octet-stream':
 			case 'application/pdf':
+			case 'text/csv':
 			case 'text/html':
 			case 'text/plain':
 				// OK
