@@ -14,8 +14,10 @@ set_error_handler('_eh', (E_ALL & ~ E_NOTICE));
 set_exception_handler('_eh');
 
 $cfg = [];
-$cfg['debug'] = false;
+$cfg['debug'] = true;
 $app = new \OpenTHC\App($cfg);
+
+$app->get('/home', 'OpenTHC\Pub\Controller\Home');
 
 // Show everyone my Public Key
 $app->get('/pk', function() {
@@ -30,8 +32,13 @@ $app->get('/{pk:[\w\-]{43}}', 'OpenTHC\Pub\Controller\Profile');
 // Update this Public Profile for this PK
 // POST JSON and it's encrypted, with the SK for the indicated PK
 $app->map(['POST','PUT'], '/{pk:[\w\-]{43}}', 'OpenTHC\Pub\Controller\Profile:update');
-// $app->map(['POST','PUT'], '/{pk:[\w\-]{43}}/{path:[\w\-\.]{4,64}}', 'OpenTHC\Pub\Controller\Profile:put');
-// $app->delete('/p/{pk:[\w\-]{43}}/{path:[\w\-\.]{4,64}}', 'OpenTHC\Pub\Controller\Profile:del');
+$app->delete('/{pk:[\w\-]{43}}', 'OpenTHC\Pub\Controller\Profile:delete');
+
+// Profile Messages
+$profile_message_path = '/{pk:[\w\-]{43}}/{message_pk:[\w\-]{43}}/{path:[\w\-\.]{4,64}}';
+$app->get($profile_message_path, 'OpenTHC\Pub\Controller\Profile:message_get');
+$app->map(['POST','PUT'], $profile_message_path, 'OpenTHC\Pub\Controller\Profile:message_put');
+$app->delete($profile_message_path, 'OpenTHC\Pub\Controller\Profile:message_del');
 
 
 // Message
