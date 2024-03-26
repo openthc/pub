@@ -35,23 +35,30 @@ servers:
     description: You can install to sub-host or sub-path
 
 tags:
-  - name: Account
-    description: Authentication and session management
   - name: Message
-    description: "Core System Data: Company, License, Contact"
+    description: Sending a Message
+  - name: Profile
+    description: Profile Specific endpoints for message sharing.
 
 
 #
 # Componenets
 components:
   requestBodies:
-    Account_Create:
-      description: "Create an Account"
+    Profile_Create:
+      description: "Create an Profile"
       content:
-        application/json: {}
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                description: "A Name"
+              link:
+                description: "Link to Homepage"
 
-    Account_Update:
-      description: "Update an Account"
+    Profile_Update:
+      description: "Update an Profile"
       content:
         application/json:
           schema:
@@ -62,25 +69,24 @@ components:
               nonce:
                 description: "The nonce for the encrypted data"
 
-    Message_Create:
-      description: "Create a Message to an Account"
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              crypt:
-                description: "Encrypted Data Blob, Base64"
-              nonce:
-                description: "The nonce for the encrypted data"
+    # Message_Create:
+    #   description: "Create a Message to an Profile"
+    #   content:
+    #     application/json:
+    #       schema:
+    #         type: object
+    #         properties:
+    #           crypt:
+    #             description: "Encrypted Data Blob, Base64"
+    #           nonce:
+    #             description: "The nonce for the encrypted data"
 
   responses:
-    Account:
-      description: "Account Information"
+    Profile:
+      description: "Profile Information"
       content:
         application/json:
           schema:
-            type: object
             properties:
               data:
                 description: "Some kind of data, an array of objects or a single object"
@@ -98,6 +104,17 @@ components:
                 description: "Some kind of data, an array of objects or a single object"
               meta:
                 description: "Additional Helpful info, generally an object or array of objects"
+    System:
+      description: "A system class message"
+      content:
+        application/json:
+          schema:
+            properties:
+              data:
+                description: "Some Interesting Data"
+              meta:
+                description: "Might include a note"
+
   # schemas:
   #   $ref: 'components/schema.yaml'
 
@@ -105,38 +122,111 @@ components:
 #
 # Paths
 paths:
-  "/$PUBLIC_KEY":
+  "/$MESSAGE_PK/MESSAGE.FILE":
+    post:
+      summary: "Create or Update a Message"
+      tags: [ "Message" ]
+      responses:
+        200:
+          $ref: 'components/responses/Message'
+        403:
+          $ref: 'components/responses/System'
+        404:
+          $ref: 'components/responses/System'
+
+    put:
+      summary: "Create or Update a Message"
+      tags: [ "Message" ]
+      responses:
+        200:
+          $ref: 'components/responses/System'
+        403:
+          $ref: 'components/responses/System'
+        404:
+          $ref: 'components/responses/System'
+    get:
+      summary: "Get the Message"
+      tags: [ "Message" ]
+      responses:
+        200:
+          $ref: 'components/responses/Message'
+        404:
+          $ref: 'components/responses/System'
+    delete:
+      summary: "Delete the Message"
+      tags: [ "Message" ]
+      responses:
+        200:
+          $ref: 'components/responses/System'
+        403:
+          $ref: 'components/responses/System'
+        404:
+          $ref: 'components/responses/System'
+
+  "/$PROFILE_PK":
+    get:
+      summary: "Get the JSON details for the specific Profile"
+      tags: [ "Profile" ]
+      responses:
+        200:
+          $ref: 'components/responses/Profile'
+        404:
+          $ref: 'components/responses/System'
     post:
       summary: "Create or Update Public Key"
       description: "Creates and registers a public key endpoint"
-      tags: [ "Account" ]
+      tags: [ "Profile" ]
       requestBody:
-        description: Empty
+        description: Some JSON describing the profile
         required: false
         content:
           application/json:
             schema:
               oneOf:
-                - $ref: '#/components/requestBodies/Account_Create'
-                - $ref: '#/components/requestBodies/Account_Update'
+                - $ref: 'components/requestBodies/Profile_Create'
+                - $ref: 'components/requestBodies/Profile_Update'
       responses:
         200:
-          description: OK
+          $ref: 'components/responses/System'
         201:
-          description: Created
+          $ref: 'components/responses/System'
+        403:
+          $ref: 'components/responses/System'
+    put:
+      summary: "Like POST"
+      tags: [ "Profile" ]
+      responses:
+        200:
+          $ref: 'components/responses/System'
+        201:
+          $ref: 'components/responses/System'
+        403:
+          $ref: 'components/responses/System'
 
-  "/$PUBLIC_KEY/$MESSAGE":
+  "/$PROFILE_PK/$MESSAGE_PK":
     post:
       summary: "Create a Message"
-      description: "Create a Message to a Public Key"
-      tags: [ "Message" ]
+      description: "Create a Message to a Specific Profile"
+      tags: [ "Profile" ]
       responses:
         201:
-          description: Created
-    delete:
-      summary: "Delete a message from your incomming queue"
-      description: "Delete a Message"
-      tags: [ "Message" ]
+          $ref: 'components/responses/System'
+    put:
+      summary: "Like POST"
+      tags: [ "Profile" ]
       responses:
         200:
-          description: Deleted
+          $ref: 'components/responses/System'
+        201:
+          $ref: 'components/responses/System'
+    delete:
+      summary: "Delete a Message from your incoming queue"
+      description: "Delete a Message"
+      tags: [ "Profile" ]
+      responses:
+        200:
+          $ref: 'components/responses/System'
+        403:
+          $ref: 'components/responses/System'
+        404:
+          $ref: 'components/responses/System'
