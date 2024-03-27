@@ -206,7 +206,7 @@ class Message extends Base
 				break;
 			default:
 				return $RES->withJSON([
-					'data' => null,
+					'data' => $msg['type'],
 					'meta' => [ 'note' => 'Invalid Content Type [CLM-042]' ]
 				], 400);
 		}
@@ -263,7 +263,7 @@ class Message extends Base
 			'body' => $msg['body'],
 		]);
 		return $RES->withJSON([
-			'data' => $msg['id'],
+			'data' => sprintf('%s/%s', OPENTHC_SERVICE_ORIGIN, $msg['id']),
 			'meta' => [
 				'name' => $msg['name'],
 				'type' => $msg['type'],
