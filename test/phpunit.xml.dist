@@ -9,7 +9,7 @@
 	backupStaticAttributes="false"
 	bootstrap="../boot.php"
 	cacheResult="false"
-	colors="true"
+	colors="false"
 	convertErrorsToExceptions="true"
 	convertNoticesToExceptions="true"
 	convertWarningsToExceptions="true"
@@ -17,10 +17,10 @@
 	stopOnError="true"
 	stopOnFailure="true"
 	stopOnRisky="true"
-	timeoutForSmallTests="1"
-	timeoutForMediumTests="10"
-	timeoutForLargeTests="60"
-	verbose="true"
+	timeoutForSmallTests="2"
+	timeoutForMediumTests="8"
+	timeoutForLargeTests="32"
+	verbose="false"
 	>
 
 	<php>
