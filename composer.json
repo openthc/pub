@@ -14,6 +14,7 @@
 	},
 	"require": {
 		"php": ">=7.3.0",
+		"docopt/docopt": "1.0.5",
 		"edoceo/lowline": "2022.0.280",
 		"edoceo/radix": "2021.0.0",
 		"openthc/common": "dev-main"
