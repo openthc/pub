@@ -1,25 +1,26 @@
 #!/usr/bin/php
 <?php
 /**
- * OpenTHC WWW-COM Test
+ * OpenTHC Pub Test
  */
 
-require_once(__DIR__ . '/boot.php');
+require_once(dirname(__DIR__) . '/boot.php');
 
 // $arg = \OpenTHC\Docopt::parse($doc, ?$argv=[]);
 // Parse CLI
 $doc = <<<DOC
-OpenTHC WWW-COM Test
+OpenTHC Pub Test
 
 Usage:
 	test [options]
 
 Options:
-	--filter=<FILTER>   Some Filter for PHPUnit
+	--phpunit-filter=<FILTER>   Some Filter for PHPUnit
 
 DOC;
 
 $arg = Docopt::handle($doc, [
+	'exit' => false,
 	'help' => false,
 	'optionsFirst' => true,
 ]);
