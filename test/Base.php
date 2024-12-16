@@ -31,8 +31,8 @@ class Base extends \PHPUnit\Framework\TestCase
 		$this->_pid = getmypid();
 		$this->_api_base = \OpenTHC\Config::get('openthc/pub/origin');
 
-		$this->_api_client_pk = OPENTHC_TEST_API_CLIENT_PK;
-		$this->_api_client_sk = OPENTHC_TEST_API_CLIENT_SK;
+		$this->_api_client_pk = $_ENV['OPENTHC_TEST_API_CLIENT_PK'];
+		$this->_api_client_sk = $_ENV['OPENTHC_TEST_API_CLIENT_SK'];
 
 		$this->_service_pk_b64 = \OpenTHC\Config::get('openthc/pub/public');
 		$this->_service_pk_bin = Sodium::b64decode($this->_service_pk_b64);

@@ -16,7 +16,7 @@ class Update_Fail_Test extends \OpenTHC\Pub\Test\Base
 	 */
 	function update_profile_as_null()
 	{
-		$req_path = OPENTHC_TEST_LICENSE_A_PK;
+		$req_path = $_ENV['OPENTHC_TEST_LICENSE_A_PK'];
 		$req_body = json_encode([
 			'name' => sprintf('LICENSE A UPDATE %s', _ulid())
 		]);

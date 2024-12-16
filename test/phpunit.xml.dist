@@ -26,18 +26,18 @@
 	<php>
 
 		<!-- Need to Create and Register -->
-		<const name="OPENTHC_TEST_API_CLIENT_PK" value="" />
-		<const name="OPENTHC_TEST_API_CLIENT_SK" value="" />
+		<env name="OPENTHC_TEST_API_CLIENT_PK" value="Q5QGG-2_2aZ4WoqtGMyCBIRR-YW9uUwKrYr4mCsjkzU" />
+		<env name="OPENTHC_TEST_API_CLIENT_SK" value="vW5pGOZRgtiDjoRtYr8a26ijNrJIGw5P83arAjjX30Y" />
 
 		<!-- Just some random test keys here, could (should?) create your own -->
-		<const name="OPENTHC_TEST_LICENSE_A_PK" value="cdgeXhiKxQEvuUqlrF2hg9Z63CotrJwM_YZfeM1Y-FQ" />
-		<const name="OPENTHC_TEST_LICENSE_A_SK" value="QrFQZ0NuBcK8jVyVA3hLOw6XS7_XzZIfcpUAcjEbnrM" />
+		<env name="OPENTHC_TEST_LICENSE_A_PK" value="cdgeXhiKxQEvuUqlrF2hg9Z63CotrJwM_YZfeM1Y-FQ" />
+		<env name="OPENTHC_TEST_LICENSE_A_SK" value="QrFQZ0NuBcK8jVyVA3hLOw6XS7_XzZIfcpUAcjEbnrM" />
 
-		<const name="OPENTHC_TEST_LICENSE_B_PK" value="8kJu3zYnXjCCuin86G5qL9k_IyETWJbVRTDsw6dCGCE" />
-		<const name="OPENTHC_TEST_LICENSE_B_SK" value="-B05deqBNDCY8Dd86KhJDYjn9CnCFDN15SX3FvxtM5w" />
+		<env name="OPENTHC_TEST_LICENSE_B_PK" value="8kJu3zYnXjCCuin86G5qL9k_IyETWJbVRTDsw6dCGCE" />
+		<env name="OPENTHC_TEST_LICENSE_B_SK" value="-B05deqBNDCY8Dd86KhJDYjn9CnCFDN15SX3FvxtM5w" />
 
-		<const name="OPENTHC_TEST_LICENSE_C_PK" value="1dMeI-8jayJLX0zWe4H2adBQzs-PDQWUpon9cxf4Knc" />
-		<const name="OPENTHC_TEST_LICENSE_C_SK" value="Zu8cBeQOfE30hPjzslxTtGtWHSOICYP6mt1yIfdswbI" />
+		<env name="OPENTHC_TEST_LICENSE_C_PK" value="1dMeI-8jayJLX0zWe4H2adBQzs-PDQWUpon9cxf4Knc" />
+		<env name="OPENTHC_TEST_LICENSE_C_SK" value="Zu8cBeQOfE30hPjzslxTtGtWHSOICYP6mt1yIfdswbI" />
 
 	</php>
 
@@ -49,6 +49,7 @@
 			<file>Profile/Update_Test.php</file>
 			<file>Profile/Update_Fail_Test.php</file>
 			<file>Message/Create_Test.php</file>
+			<file>Message/Create_Fail_Test.php</file>
 			<file>Message/Update_Test.php</file>
 			<file>Message/Update_Fail_Test.php</file>
 			<file>Message/Delete_Test.php</file>

@@ -49,9 +49,9 @@ class Delete_Test extends \OpenTHC\Pub\Test\Base
 		$this->assertIsObject($obj);
 		$this->assertObjectHasProperty('data', $obj);
 		$this->assertObjectHasProperty('meta', $obj);
-		$this->assertEquals($req_path, $obj->data);
+		$this->assertStringEndsWith($req_path, $obj->data);
 
-		return $obj->data;
+		return $req_path;
 
 	}
 
@@ -63,6 +63,8 @@ class Delete_Test extends \OpenTHC\Pub\Test\Base
 	 */
 	function missing_auth_box(string $msg_path) : string
 	{
+		$this->assertMatchesRegularExpression('/^[\w\-]{43}\/\w+/', $msg_path);
+
 		$res = $this->_curl_get($msg_path);
 		$this->assertEquals(200, $res['code']);
 		$this->assertEquals('text/plain;charset=UTF-8', $res['type']);

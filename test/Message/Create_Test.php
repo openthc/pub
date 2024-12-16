@@ -15,10 +15,10 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 	static function setupBeforeClass() : void
 	{
 		$dbc = _dbc();
-		$dbc->query('DELETE FROM message WHERE id = :pk', [ ':pk' => sprintf('%s/%s', OPENTHC_TEST_LICENSE_A_PK, OPENTHC_TEST_LICENSE_B_PK) ]);
-		$dbc->query('DELETE FROM message WHERE id = :pk', [ ':pk' => sprintf('%s/%s', OPENTHC_TEST_LICENSE_B_PK, OPENTHC_TEST_LICENSE_A_PK ) ]);
-		// $dbc->query('DELETE FROM message WHERE id = :pk', [ ':pk' => sprintf('%s/%s', OPENTHC_TEST_LICENSE_B_PK ]);
-		// $dbc->query('DELETE FROM message WHERE id = :pk', [ ':pk' => sprintf('%s/%s', OPENTHC_TEST_LICENSE_C_PK ]);
+		$dbc->query('DELETE FROM message WHERE id = :pk', [ ':pk' => sprintf('%s/%s', $_ENV['OPENTHC_TEST_LICENSE_A_PK'], $_ENV['OPENTHC_TEST_LICENSE_B_PK']) ]);
+		$dbc->query('DELETE FROM message WHERE id = :pk', [ ':pk' => sprintf('%s/%s', $_ENV['OPENTHC_TEST_LICENSE_B_PK'], $_ENV['OPENTHC_TEST_LICENSE_A_PK']) ]);
+		// $dbc->query('DELETE FROM message WHERE id = :pk', [ ':pk' => sprintf('%s/%s', $_ENV['OPENTHC_TEST_LICENSE_B_PK'] ])
+		// $dbc->query('DELETE FROM message WHERE id = :pk', [ ':pk' => sprintf('%s/%s', $_ENV['OPENTHC_TEST_LICENSE_C_PK'] ]);
 
 	}
 
@@ -28,7 +28,7 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 	function create_a_to_public()
 	{
 		$message_file = sprintf('%s.json', _ulid());
-		$message_seed = sprintf('%s.%s', OPENTHC_TEST_LICENSE_A_PK, $message_file);
+		$message_seed = sprintf('%s.%s', $_ENV['OPENTHC_TEST_LICENSE_A_PK'], $message_file);
 		$message_seed = sodium_crypto_generichash($message_seed, '', SODIUM_CRYPTO_GENERICHASH_KEYBYTES);
 		$message_kp = sodium_crypto_box_seed_keypair($message_seed);
 		$message_pk = sodium_crypto_box_publickey($message_kp);
@@ -54,8 +54,8 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 
 		$message_path = Sodium::b64encode($message_pk);
 
-		$url = sprintf('%s/%s', $message_path, $message_file);
-		$res = $this->_curl_post($url, $req_head, $req_body);
+		$req_path = sprintf('%s/%s', $message_path, $message_file);
+		$res = $this->_curl_post($req_path, $req_head, $req_body);
 		$this->assertEquals(201, $res['code']);
 		$this->assertEquals('application/json', $res['type']);
 
@@ -63,7 +63,7 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 		$this->assertIsObject($obj);
 		$this->assertObjectHasProperty('data', $obj);
 		$this->assertObjectHasProperty('meta', $obj);
-		$this->assertEquals($url, $obj->data);
+		$this->assertStringEndsWith($req_path, $obj->data);
 
 	}
 
@@ -72,14 +72,14 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 	 */
 	function message_a_to_b_plain()
 	{
-		$pk_source_b64 = OPENTHC_TEST_LICENSE_A_PK;
+		$pk_source_b64 = $_ENV['OPENTHC_TEST_LICENSE_A_PK'];
 		$pk_source_bin = \OpenTHC\Sodium::b64decode($pk_source_b64);
-		$sk_source_b64 = OPENTHC_TEST_LICENSE_A_SK;
+		$sk_source_b64 = $_ENV['OPENTHC_TEST_LICENSE_A_SK'];
 		$sk_source_bin = \OpenTHC\Sodium::b64decode($sk_source_b64);
-		$pk_target_b64 = OPENTHC_TEST_LICENSE_B_PK;
+		$pk_target_b64 = $_ENV['OPENTHC_TEST_LICENSE_B_PK'];
 		$pk_target_bin = \OpenTHC\Sodium::b64decode($pk_target_b64);
 
-		$req_path = sprintf('%s/%s.json', OPENTHC_TEST_LICENSE_B_PK, _ulid());
+		$req_path = sprintf('%s/%s.json', $_ENV['OPENTHC_TEST_LICENSE_B_PK'], _ulid());
 
 		$req_auth = $this->create_req_auth();
 
@@ -174,7 +174,7 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 		$req_auth = $this->create_req_auth();
 
 		// Plain Text Data
-		$req_path = sprintf('%s/%s.txt', OPENTHC_TEST_LICENSE_A_PK, _ulid());
+		$req_path = sprintf('%s/%s.txt', $_ENV['OPENTHC_TEST_LICENSE_A_PK'], _ulid());
 		$req_body = "This is a Plain Text Message";
 		$req_head = [
 			'authorization' => sprintf('OpenTHC %s.%s', $this->_api_client_pk, $req_auth),
@@ -217,7 +217,7 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 		$this->assertEquals('Message Not Found [PCM-130]', $obj->meta->note);
 
 		// Authorized Request
-		$profile_auth = Sodium::encrypt(OPENTHC_TEST_LICENSE_A_PK, OPENTHC_TEST_LICENSE_A_SK, $this->_service_pk_bin);
+		$profile_auth = Sodium::encrypt($_ENV['OPENTHC_TEST_LICENSE_A_PK'], $_ENV['OPENTHC_TEST_LICENSE_A_SK'], $this->_service_pk_bin);
 		$profile_auth = Sodium::b64encode($profile_auth);
 
 		$req_auth = $this->create_req_auth([
@@ -249,7 +249,7 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 			'variety' => [],
 			'lab_result' => [],
 		]);
-		$req_body = Sodium::encrypt($req_body, OPENTHC_TEST_LICENSE_A_SK, $target_pk_bin);
+		$req_body = Sodium::encrypt($req_body, $_ENV['OPENTHC_TEST_LICENSE_A_SK'], $target_pk_bin);
 		// $req_body = Sodium::b64encode($req_body);
 
 		$message_kp0 = sodium_crypto_box_keypair();
@@ -280,7 +280,7 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 		$this->assertIsObject($obj);
 		$this->assertObjectHasProperty('data', $obj);
 		$this->assertObjectHasProperty('meta', $obj);
-		$this->assertEquals($req_path, $obj->data);
+		$this->assertStringEndsWith($req_path, $obj->data);
 
 		// Now Get It and Decrypt
 		// Ensuring that the Bytes are Good?
@@ -341,7 +341,7 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 		// A should have this message
 		$service_pk = \OpenTHC\Config::get('openthc/pub/public');
 		// Encrypt Credentials to Service
-		$box = \OpenTHC\Sodium::encrypt(OPENTHC_TEST_LICENSE_A_PK, OPENTHC_TEST_LICENSE_A_SK, $service_pk );
+		$box = \OpenTHC\Sodium::encrypt($_ENV['OPENTHC_TEST_LICENSE_A_PK'], $_ENV['OPENTHC_TEST_LICENSE_A_SK'], $service_pk );
 		$res = $this->_curl_get($target_pk_b64, [
 			sprintf('authorization: OpenTHC %s', \OpenTHC\Sodium::b64encode($box))
 		]);

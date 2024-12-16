@@ -17,9 +17,9 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 	static function setupBeforeClass() : void
 	{
 		$dbc = _dbc();
-		$dbc->query('DELETE FROM profile WHERE id = :pk', [ ':pk' => OPENTHC_TEST_LICENSE_A_PK ]);
-		$dbc->query('DELETE FROM profile WHERE id = :pk', [ ':pk' => OPENTHC_TEST_LICENSE_B_PK ]);
-		$dbc->query('DELETE FROM profile WHERE id = :pk', [ ':pk' => OPENTHC_TEST_LICENSE_C_PK ]);
+		$dbc->query('DELETE FROM profile WHERE id = :pk', [ ':pk' => $_ENV['OPENTHC_TEST_LICENSE_A_PK'] ]);
+		$dbc->query('DELETE FROM profile WHERE id = :pk', [ ':pk' => $_ENV['OPENTHC_TEST_LICENSE_B_PK'] ]);
+		$dbc->query('DELETE FROM profile WHERE id = :pk', [ ':pk' => $_ENV['OPENTHC_TEST_LICENSE_C_PK'] ]);
 	}
 
 	/**
@@ -32,9 +32,9 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 		$rand_pk_bin = sodium_crypto_box_publickey($rand_kp);
 
 		$profile_list = [
-			OPENTHC_TEST_LICENSE_A_PK,
-			OPENTHC_TEST_LICENSE_B_PK,
-			OPENTHC_TEST_LICENSE_C_PK,
+			$_ENV['OPENTHC_TEST_LICENSE_A_PK'],
+			$_ENV['OPENTHC_TEST_LICENSE_B_PK'],
+			$_ENV['OPENTHC_TEST_LICENSE_C_PK'],
 			Sodium::b64encode($rand_pk_bin),
 			_ulid(),
 			'ANOTHER_INVALID_NAME',
@@ -66,18 +66,18 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 	{
 		$profile_list = [
 			[
-				'pk' => OPENTHC_TEST_LICENSE_A_PK,
-				'sk' => OPENTHC_TEST_LICENSE_A_SK,
+				'pk' => $_ENV['OPENTHC_TEST_LICENSE_A_PK'],
+				'sk' => $_ENV['OPENTHC_TEST_LICENSE_A_SK'],
 				'name' => 'LICENSE_A',
 			],
 			[
-				'pk' => OPENTHC_TEST_LICENSE_B_PK,
-				'sk' => OPENTHC_TEST_LICENSE_B_SK,
+				'pk' => $_ENV['OPENTHC_TEST_LICENSE_B_PK'],
+				'sk' => $_ENV['OPENTHC_TEST_LICENSE_B_SK'],
 				'name' => 'LICENSE_B',
 			],
 			[
-				'pk' => OPENTHC_TEST_LICENSE_C_PK,
-				'sk' => OPENTHC_TEST_LICENSE_C_SK,
+				'pk' => $_ENV['OPENTHC_TEST_LICENSE_C_PK'],
+				'sk' => $_ENV['OPENTHC_TEST_LICENSE_C_SK'],
 				'name' => 'LICENSE_C',
 			],
 		];

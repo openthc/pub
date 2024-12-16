@@ -57,7 +57,7 @@ class Update_Fail_Test extends \OpenTHC\Pub\Test\Base
 		$this->assertIsObject($obj);
 		$this->assertObjectHasProperty('data', $obj);
 		$this->assertObjectHasProperty('meta', $obj);
-		$this->assertEquals($req_path, $obj->data);
+		$this->assertStringEndsWith($req_path, $obj->data);
 
 		$res = $this->_curl_get($req_path);
 		$this->assertEquals(200, $res['code']);

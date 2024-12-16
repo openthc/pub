@@ -16,10 +16,10 @@ class Update_Test extends \OpenTHC\Pub\Test\Base
 	 */
 	function update_profile_as_self()
 	{
-		$req_path = OPENTHC_TEST_LICENSE_A_PK;
+		$req_path = $_ENV['OPENTHC_TEST_LICENSE_A_PK'];
 
-		$profile_auth = OPENTHC_TEST_LICENSE_A_PK;
-		$profile_auth = Sodium::encrypt($profile_auth, OPENTHC_TEST_LICENSE_A_SK, $this->_service_pk_bin);
+		$profile_auth = $_ENV['OPENTHC_TEST_LICENSE_A_PK'];
+		$profile_auth = Sodium::encrypt($profile_auth, $_ENV['OPENTHC_TEST_LICENSE_A_SK'], $this->_service_pk_bin);
 		$profile_auth = Sodium::b64encode($profile_auth);
 
 		$req_auth = json_encode([
