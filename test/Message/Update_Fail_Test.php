@@ -19,14 +19,14 @@ class Update_Fail_Test extends \OpenTHC\Pub\Test\Base
 		$kp = sodium_crypto_box_keypair();
 
 		$message_file = sprintf('%s.json', _ulid());
-		$message_seed = sprintf('%s.%s', OPENTHC_TEST_LICENSE_A_PK, $message_file);
+		$message_seed = sprintf('%s.%s', $_ENV['OPENTHC_TEST_LICENSE_A_PK'], $message_file);
 		$message_seed = sodium_crypto_generichash($message_seed, '', SODIUM_CRYPTO_GENERICHASH_KEYBYTES);
 
 		$message_kp = sodium_crypto_box_seed_keypair($message_seed);
 		$message_pk = sodium_crypto_box_publickey($message_kp);
 		$message_sk = sodium_crypto_box_secretkey($message_kp);
 
-		$message_auth = Sodium::b64encode($message_pk); // OPENTHC_TEST_LICENSE_A_PK;
+		$message_auth = Sodium::b64encode($message_pk);
 		$message_auth = Sodium::encrypt($message_auth, $message_sk, $this->_service_pk_bin);
 
 		$req_auth = json_encode([
@@ -77,7 +77,7 @@ class Update_Fail_Test extends \OpenTHC\Pub\Test\Base
 		$message_pk = sodium_crypto_box_publickey($message_kp);
 		$message_sk = sodium_crypto_box_secretkey($message_kp);
 
-		$message_auth = Sodium::b64encode($message_pk); // OPENTHC_TEST_LICENSE_A_PK;
+		$message_auth = Sodium::b64encode($message_pk);
 		$message_auth = Sodium::encrypt($message_auth, $message_sk, $this->_service_pk_bin);
 
 		$req_auth = json_encode([

@@ -34,7 +34,7 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 		$message_pk = sodium_crypto_box_publickey($message_kp);
 		$message_sk = sodium_crypto_box_secretkey($message_kp);
 
-		$message_auth = Sodium::b64encode($message_pk); // OPENTHC_TEST_LICENSE_A_PK;
+		$message_auth = Sodium::b64encode($message_pk);
 		$message_auth = Sodium::encrypt($message_auth, $message_sk, $this->_service_pk_bin);
 		$message_auth = Sodium::b64encode($message_auth);
 		$req_auth = $this->create_req_auth([
@@ -128,7 +128,7 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 	 */
 	// function message_a_to_b_read()
 	// {
-	// 	$res = $this->get_message_zero(OPENTHC_TEST_LICENSE_B_SK, OPENTHC_TEST_LICENSE_B_PK);
+	// 	$res = $this->get_message_zero($_ENV['OPENTHC_TEST_LICENSE_B_SK'], $_ENV['OPENTHC_TEST_LICENSE_B_PK']);
 	// 	$this->assertNotEmpty($res['id']);
 	// 	$this->assertNotEmpty($res['data']);
 
@@ -138,8 +138,8 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 	// 	$msg_crypt = substr($msg, SODIUM_CRYPTO_BOX_NONCEBYTES);
 
 	// 	// Keypair
-	// 	$sk = \OpenTHC\Sodium::b64decode(OPENTHC_TEST_LICENSE_B_SK);
-	// 	$pk = \OpenTHC\Sodium::b64decode(OPENTHC_TEST_LICENSE_A_PK);
+	// 	$sk = \OpenTHC\Sodium::b64decode($_ENV['OPENTHC_TEST_LICENSE_B_SK']);
+	// 	$pk = \OpenTHC\Sodium::b64decode($_ENV['OPENTHC_TEST_LICENSE_A_PK']);
 	// 	$kp1 = sodium_crypto_box_keypair_from_secretkey_and_publickey($sk, $pk);
 	// 	$plain_data = sodium_crypto_box_open($msg_crypt, $msg_nonce, $kp1);
 	// 	$this->assertNotEmpty($plain_data);
@@ -156,11 +156,11 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 	 */
 	function message_b_to_a()
 	{
-		// $source_pk_b64 = OPENTHC_TEST_LICENSE_B_PK;
+		// $source_pk_b64 = $_ENV['OPENTHC_TEST_LICENSE_B_PK'];
 		// $source_pk_bin = \OpenTHC\Sodium::b64decode($source_pk_b64);
-		// $source_sk_b64 = OPENTHC_TEST_LICENSE_B_SK;
+		// $source_sk_b64 = $_ENV['OPENTHC_TEST_LICENSE_B_SK'];
 		// $source_sk_bin = \OpenTHC\Sodium::b64decode($source_sk_b64);
-		// $target_pk_b64 = OPENTHC_TEST_LICENSE_A_PK;
+		// $target_pk_b64 = $_ENV['OPENTHC_TEST_LICENSE_A_PK'];
 		// $target_pk_bin = \OpenTHC\Sodium::b64decode($target_pk_b64);
 
 		$req_body = json_encode([
@@ -290,7 +290,7 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 
 		// Decrypt It
 		$sk = sodium_crypto_box_secretkey($target_kp0);
-		$pk = OPENTHC_TEST_LICENSE_A_PK;
+		$pk = $_ENV['OPENTHC_TEST_LICENSE_A_PK'];
 		$res_data = Sodium::encrypt($res['body'], $sk, $pk);
 		$this->assertNotEmpty($res_data);
 
@@ -308,7 +308,7 @@ class Create_Test extends \OpenTHC\Pub\Test\Base
 		// $source_sk_bin = sodium_crypto_box_secretkey($raw);
 		// $source_sk_b64 = \OpenTHC\Sodium::b64encode($source_sk_bin);
 
-		$target_pk_b64 = OPENTHC_TEST_LICENSE_A_PK;
+		$target_pk_b64 = $_ENV['OPENTHC_TEST_LICENSE_A_PK'];
 		$target_pk_bin = \OpenTHC\Sodium::b64decode($target_pk_b64);
 
 		$req_body = json_encode([
