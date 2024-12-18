@@ -27,7 +27,7 @@ SET default_table_access_method = heap;
 CREATE TABLE public.message (
     id character varying(256) NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone,
     deleted_at timestamp with time zone,
     expires_at timestamp with time zone,
     size integer,
@@ -46,7 +46,7 @@ ALTER TABLE public.message OWNER TO openthc_pub;
 CREATE TABLE public.profile (
     id character varying(64) NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone,
     deleted_at timestamp with time zone,
     name text,
     meta jsonb
@@ -74,4 +74,3 @@ ALTER TABLE ONLY public.profile
 --
 -- PostgreSQL database dump complete
 --
-
