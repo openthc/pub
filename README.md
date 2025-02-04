@@ -24,7 +24,7 @@ curl \
 	--header 'authorization: OpenTHC $MESSAGE_AUTH_BOX' \
 	--header 'content-type: application/json' \
 	--data '$MESSAGE_DATA' \
-	$SERVER/$MESSAGE_PK/MESSAGE.FILE</pre>
+	$SERVER/$MESSAGE_PK/MESSAGE.FILE
 ```
 
 Other files can be added into this message location.
@@ -35,7 +35,7 @@ curl \
 	--header 'authorization: OpenTHC $MESSAGE_AUTH_BOX' \
 	--header 'content-type: application/json' \
 	--data '$MESSAGE_DATA' \
-	$SERVER/$MESSAGE_PK/MESSAGE2.FILE</pre>
+	$SERVER/$MESSAGE_PK/MESSAGE2.FILE
 ```
 
 ### Update Message
@@ -48,7 +48,7 @@ curl \
 	--header 'authorization: OpenTHC $MESSAGE_AUTH_BOX' \
 	--header 'content-type: application/json' \
 	--data '$MESSAGE_DATA' \
-	$SERVER/$MESSAGE_PK/MESSAGE.FILE</pre>
+	$SERVER/$MESSAGE_PK/MESSAGE.FILE
 ```
 
 ----
@@ -183,7 +183,7 @@ curl /$MESSAGE-PK/$MESSAGE-ID \
 
 ## Formats
 
-Uploading messages supported in one of three formats.
+Uploading messages supported in these formats.
 
 - application/json
 - application/octet-stream
