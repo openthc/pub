@@ -19,6 +19,9 @@ $app = new \OpenTHC\App($cfg);
 
 $app->get('/home', 'OpenTHC\Pub\Controller\Home');
 
+$app->get('/wcia', 'OpenTHC\Pub\Controller\WCIA');
+$app->post('/wcia', 'OpenTHC\Pub\Controller\WCIA:post');
+
 // Show everyone my Public Key
 $app->get('/pk', function() {
 	_exit_text(\OpenTHC\Config::get('openthc/pub/public'));
