@@ -77,9 +77,9 @@ Send a POST/PUT to your public-key with your profile information encrypted to th
 
 ```
 curl $SERVER/$PK \
-  -X POST \
-  --header 'content-type: application/octet-stream' \
-  --data '$JSON_BOX'
+	-X POST \
+	--header 'content-type: application/octet-stream' \
+	--data '$JSON_BOX'
 ```
 
 
@@ -154,10 +154,10 @@ Then publish to this endpoint.
 
 ```
 curl /$MESSAGE_PK/$MESSAGE.FILE \
-  -X POST \
-  --header 'authorization: $CLIENT_AUTH_BOX' \
-  --header 'content-type: application/json' \
-  --data '@file'
+	-X POST \
+	--header 'authorization: $CLIENT_AUTH_BOX' \
+	--header 'content-type: application/json' \
+	--data '@file'
 ```
 
 ## Update Message
@@ -172,11 +172,11 @@ SERVICE_ID.CONTACT_ID.COMPANY_ID.LICENSE_ID.MESSAGE_PK
 
 ```
 curl /$MESSAGE-PK/$MESSAGE-ID \
-  -X POST \
-  --header 'authorization: $CLIENT_AUTH_BOX' \
-  --header 'openthc-message-authorization: $MESSAGE_AUTH_BOX' \
-  --header 'content-type: application/json' \
-  --data '@file'
+	-X POST \
+	--header 'authorization: $CLIENT_AUTH_BOX' \
+	--header 'openthc-message-authorization: $MESSAGE_AUTH_BOX' \
+	--header 'content-type: application/json' \
+	--data '@file'
 ```
 
 ----
