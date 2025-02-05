@@ -29,6 +29,9 @@ Make::install_fontawesome();
 
 Make::install_jquery();
 
+@mkdir('webroot/vendor/htmx/');
+copy('node_modules/htmx.org/dist/htmx.min.js', 'webroot/vendor/htmx/htmx.min.js');
+
 create_homepage();
 
 /**
