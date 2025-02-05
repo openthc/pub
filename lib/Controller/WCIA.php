@@ -72,7 +72,11 @@ class WCIA extends Base
 			}
 			$x = implode('; ', $x);
 
-			echo '<h2 class="text-bg-primary rounded p-1">HTTP Result</h2>';
+			echo '<h2 class="text-bg-primary rounded p-1">';
+			echo 'HTTP Result';
+			// echo ' <button data-toggle="collapse" data-target="#http-header-wrap" id="http-header-frob" type="button">Show</button>';
+			echo '</h2>';
+			echo '<div class="" id="http-header-wrap">';
 			echo '<table class="table table-sm">';
 			printf('<tr><td>%s</td><td>%s</td></tr>', __h($res_head['HTTP']), $x);
 			unset($res_head['HTTP']);
@@ -92,6 +96,7 @@ class WCIA extends Base
 				echo '</tr>';
 			}
 			echo '</table>';
+			echo '</div>';
 			// echo '<pre>' . __h(json_encode($inf, JSON_PRETTY_PRINT)) . '</pre>';
 
 			switch ($res_head['content-type']) {
@@ -103,7 +108,7 @@ class WCIA extends Base
 					exit;
 				}
 				$doc['@origin'] = $url;
-				$this->validate_wcia_data($doc);
+				$this->verify_wcia_data($doc);
 				break;
 			default:
 				$x = sprintf('Invalid Content Type: <strong>%s</strong>.', __h($res_head['content-type']));
@@ -115,16 +120,18 @@ class WCIA extends Base
 		}
 
 		if (0 == $_FILES['wcia-file']['error']) {
+
 			$type = $_FILES['wcia-file']['type'];
 			$data = file_get_contents($_FILES['wcia-file']['tmp_name']);
 			// Do Stuff
-			var_dump($_FILES['wcia-file']);
+			// var_dump($_FILES['wcia-file']);
+			$data = json_decode($data, true);
+			if (empty($data)) {
+				echo $this->_alert_fail('Invalid Data File');
+				exit;
+			}
 		}
 
-		// $res = $this->_fetch();
-		// $this->render('wcia/
-
-		// return $RES->withRedirect('/wcia?r=....');
 		echo $this->_alert_fail('Invalid Link or File');
 
 		exit;
@@ -135,7 +142,7 @@ class WCIA extends Base
 		return sprintf('<div class="alert alert-danger">%s</div>', $h);
 	}
 
-	function validate_wcia_data($doc)
+	function verify_wcia_data($doc)
 	{
 		unset($doc['@contact']);
 
@@ -144,23 +151,23 @@ class WCIA extends Base
 		unset($doc['document_name']);
 		switch ($x) {
 		case 'WCIA LAB RESULT SCHEMA':
-			$this->validate_wcia_data_lab($doc);
+			$this->verify_wcia_data_lab($doc);
 			break;
 		case 'WCIA TRANSFER SCHEMA':
-			$this->validate_wcia_data_b2b($doc);
+			$this->verify_wcia_data_b2b($doc);
 			break;
 		}
 	}
 
-	function validate_wcia_data_b2b($doc)
+	function verify_wcia_data_b2b($doc)
 	{
-		$v = new \OpenTHC\Pub\WCIA\Validator\B2B($doc);
-		$v->validate();
+		$v = new \OpenTHC\Pub\WCIA\Verify\B2B($doc);
+		$v->verify();
 	}
 
-	function validate_wcia_data_lab($doc)
+	function verify_wcia_data_lab($doc)
 	{
-		$v = new \OpenTHC\Pub\WCIA\Validator\Lab($doc);
-		$v->validate();
+		$v = new \OpenTHC\Pub\WCIA\Verify\Lab($doc);
+		$v->verify();
 	}
 }

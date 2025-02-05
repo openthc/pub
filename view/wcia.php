@@ -51,6 +51,7 @@ if ( ! empty($_GET['source'])) {
 		</div>
 		<div class="card-footer">
 			<button class="btn btn-primary"
+				hx-on:click="show_loading_spinner()"
 				hx-post="/wcia"
 				hx-target="#wcia-validator-result"><i class="fa-regular fa-circle-check"></i> Validate</button>
 		</div>
@@ -65,7 +66,19 @@ if ( ! empty($_GET['source'])) {
 
 
 <script>
-htmx.on('#wcia-form', 'htmx:xhr:progress', function(evt) {
-	htmx.find('#progress').setAttribute('value', evt.detail.loaded/evt.detail.total * 100)
+function show_loading_spinner()
+{
+	// <!-- <i class="fa-solid fa-fan"></i> -->
+	$('#wcia-validator-result').empty();
+	$('#wcia-validator-result').html('<h2 class="text-bg-dark rounded p-4"><i class="fa-solid fa-arrows-rotate fa-spin"></i> Loading...</h2>');
+}
+$(function() {
+	$('#wcia-validator-result').on('click', '#http-header-frob', function() {
+		console.log('SHOW/HIDE');
+	});
+
 });
+// htmx.on('#wcia-form', 'htmx:xhr:progress', function(evt) {
+// 	htmx.find('#progress').setAttribute('value', evt.detail.loaded/evt.detail.total * 100)
+//});
 </script>

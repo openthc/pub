@@ -1,15 +1,15 @@
 <?php
 /**
- * WCIA Validator Base
+ * WCIA Verify Lab
  *
  * SPDX-License-Identifier: MIT
  */
 
-namespace OpenTHC\Pub\WCIA\Validator;
+namespace OpenTHC\Pub\WCIA\Verify;
 
 class Lab extends Base
 {
-	function validate()
+	function verify()
 	{
 		$doc = $this->doc;
 
@@ -23,13 +23,14 @@ class Lab extends Base
 		case '1.3.0':
 		case '2.0.0':
 		case '2.1.0':
-			$report[] = [ 'Document Version', sprintf('<div class="text-danger">Old Version %s</div>', __h($x)) ];
+			$report[] = $this->_report_fail('Document Version', sprintf('Old Version %s', __h($x)));
 			break;
 		case '2.2.0':
-			$report[] = [ 'Document Version', '<div class="text-success">2.2.0</div>', ];
+			$report[] = $this->_report_good('Document Version', '2.2.0');
 			break;
 		default:
-			$report[] = [ 'Document Version', sprintf('<div class="text-danger">Unknown Document Version <code>%s</code></div>', __h($x)) ];
+			$report[] = $this->_report_warn('Document Version', sprintf('Unknown Document Version <code>%s</code>', __h($x)));
+			break;
 		}
 		unset($doc['document_schema_version']);
 
@@ -74,7 +75,7 @@ class Lab extends Base
 
 		$x = $doc['coa'];
 		if ( ! empty($x)) {
-			$report[] = $this->_report_info('COA Link', $x);
+			$report[] = $this->_report_info('COA Link', sprintf('<a href="%s" target="_blank">%s</a>', __h($x), __h($x)));;
 		}
 		unset($doc['coa']);
 
