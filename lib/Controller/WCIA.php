@@ -110,6 +110,14 @@ class WCIA extends Base
 				$doc['@origin'] = $url;
 				$this->verify_wcia_data($doc);
 				break;
+			case 'application/pdf':
+				$pdf_b64 = base64_encode($res);
+				echo '<iframe';
+				echo ' style="height: 50vh; width: 100%;"';
+				printf(' src="data:application/pdf;base64,%s"', $pdf_b64);
+				echo '</iframe>';
+				exit(0);
+				break;
 			default:
 				$x = sprintf('Invalid Content Type: <strong>%s</strong>.', __h($res_head['content-type']));
 				echo $this->_alert_fail($x);
