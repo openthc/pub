@@ -382,7 +382,7 @@ class Message extends Base
 		VALUES (:p0, :n1, :s1, :t1, :b1)
 		ON CONFLICT (id)
 		DO UPDATE
-		SET name = :n1, size = :s1, type = :t1, body = :b1
+		SET updated_at = now(), name = :n1, size = :s1, type = :t1, body = :b1
 		SQL;
 
 		$cmd = $dbc->prepare($sql, null);
