@@ -54,6 +54,12 @@
 			<file>Message/Update_Fail_Test.php</file>
 			<file>Message/Delete_Test.php</file>
 		</testsuite>
+		<testsuite name="Message">
+			<directory>Message</directory>
+		</testsuite>
+		<testsuite name="Profile">
+			<directory>Profile</directory>
+		</testsuite>
 	</testsuites>
 
 </phpunit>
