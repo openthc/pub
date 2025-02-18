@@ -44,9 +44,9 @@ class WCIA extends Base
 			curl_setopt($req, CURLOPT_MAXREDIRS, 2);
 			curl_setopt($req, CURLOPT_TIMEOUT, 8);
 			// Add Origin Header?
-			curl_setopt($req, CURLOPT_HTTPHEADER, [
-				sprintf('origin: https://pub.openthc.dev')
-			]);
+			// curl_setopt($req, CURLOPT_HTTPHEADER, [
+			// 	sprintf('origin: https://%s')
+			// ]);
 			$res_head = [];
 			curl_setopt($req, CURLOPT_HEADERFUNCTION, function($req0, $head_line) use (&$res_head) {
 				$idx = strpos($head_line, ':', 1);
@@ -101,14 +101,21 @@ class WCIA extends Base
 
 			switch ($res_head['content-type']) {
 			case 'application/json':
+
 				$doc = json_decode($res, true);
 				if (empty($doc)) {
 					// $x = json_last_error_msg();
 					echo $this->_alert_fail('Invalid JSON Data');
 					exit;
 				}
+				if ( ! is_array($doc)) {
+					echo $this->_alert_fail('Invalid JSON Data');
+					exit;
+				}
+
 				$doc['@origin'] = $url;
 				$this->verify_wcia_data($doc);
+
 				break;
 			case 'application/pdf':
 				$pdf_b64 = base64_encode($res);
