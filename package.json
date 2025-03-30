@@ -1,29 +1,29 @@
 {
-  "name": "@openthc/pub",
-  "version": "420.24.351",
-  "description": "OpenTHC Publisher",
-  "main": "main.js",
-  "directories": {
-    "lib": "lib",
-    "test": "test"
-  },
-  "dependencies": {
-    "@fortawesome/fontawesome-free": "6.6.0",
-    "bootstrap": "5.3.3",
-    "htmx.org": "2.0.4",
-    "jquery": "3.7.1"
-  },
-  "scripts": {
-    "test": "test.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://gitlab.com/openthc/pub.git"
-  },
-  "author": "OpenTHC, Inc.",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://gitlab.com/openthc/pub/issues"
-  },
-  "homepage": "https://gitlab.com/openthc/pub#readme"
+	"name": "@openthc/pub",
+	"version": "420.24.351",
+	"description": "OpenTHC Publisher",
+	"main": "main.js",
+	"directories": {
+		"lib": "lib",
+		"test": "test"
+	},
+	"dependencies": {
+		"@fortawesome/fontawesome-free": "6.7.2",
+		"bootstrap": "5.3.3",
+		"htmx.org": "2.0.4",
+		"jquery": "3.7.1"
+	},
+	"scripts": {
+		"test": "test.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://gitlab.com/openthc/pub.git"
+	},
+	"author": "OpenTHC, Inc.",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://gitlab.com/openthc/pub/issues"
+	},
+	"homepage": "https://gitlab.com/openthc/pub#readme"
 }
