@@ -1,7 +1,6 @@
 <?php
 /**
- * Test Message Create
- * From A to B and B to A
+ * Test Message Failure Modes
  *
  * SPDX-License-Identifier: MIT
  */
@@ -14,17 +13,18 @@ class Create_Fail_Test extends \OpenTHC\Pub\Test\Base
 {
 	/**
 	 * @test
+	 * Try to put a message w/o authentication
 	 */
 	function no_authorization()
 	{
 		$message_file = sprintf('%s.json', _ulid());
-		$message_seed = sprintf('%s.%s', OPENTHC_TEST_LICENSE_A_PK, $message_file);
+		$message_seed = sprintf('%s.%s', $_ENV['OPENTHC_TEST_LICENSE_A_PK'], $message_file);
 		$message_seed = sodium_crypto_generichash($message_seed, '', SODIUM_CRYPTO_GENERICHASH_KEYBYTES);
 		$message_kp = sodium_crypto_box_seed_keypair($message_seed);
 		$message_pk = sodium_crypto_box_publickey($message_kp);
 		$message_sk = sodium_crypto_box_secretkey($message_kp);
 
-		$message_auth = Sodium::b64encode($message_pk); // OPENTHC_TEST_LICENSE_A_PK;
+		$message_auth = Sodium::b64encode($message_pk);
 		$message_auth = Sodium::encrypt($message_auth, $message_sk, $this->_service_pk_bin);
 		$message_auth = Sodium::b64encode($message_auth);
 		$req_auth = $this->create_req_auth([

@@ -37,7 +37,8 @@ class System_Test extends Base
 	function has_system_public()
 	{
 		// Has the Registered Endpoint
-		$req = _curl_init(sprintf('%s/pk', $this->_api_base));
+		$url = sprintf('%s/pk', $this->_api_base);
+		$req = _curl_init($url);
 		$res = curl_exec($req);
 		$inf = curl_getinfo($req);
 
