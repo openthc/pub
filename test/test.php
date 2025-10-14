@@ -29,9 +29,7 @@ $res = \Docopt::handle($doc, [
 	'exit' => false,
 	'optionsFirst' => true,
 ]);
-var_dump($res);
 $cli_args = $res->args;
-var_dump($cli_args);
 
 
 // Test Config
@@ -69,8 +67,8 @@ $cfg_file_list[] = sprintf('%s/phpunit.xml', __DIR__);
 $cfg_file_list[] = sprintf('%s/phpunit.xml.dist', __DIR__);
 foreach ($cfg_file_list as $f) {
 	if (is_file($f)) {
-			$cfg['--configuration'] = $f;
-			break;
+		$cfg['--configuration'] = $f;
+		break;
 	}
 }
 // Filter?
