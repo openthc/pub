@@ -147,7 +147,7 @@ class Profile extends Base
 			return $RES->withJSON([
 				'data' => null,
 				'meta' => [ 'note' => 'Invalid Profile [PCP-142]' ]
-			], 403);
+			], 401);
 		}
 		// Are the Contents of the Decrypted Thing what we want?
 		// (we want the content of the box to be the pk of the sk that encrypted the box)
@@ -155,7 +155,7 @@ class Profile extends Base
 			return $RES->withJSON([
 				'data' => null,
 				'meta' => [ 'note' => 'Invalid Profile [PCM-142]' ]
-			], 403);
+			], 401);
 		}
 
 		// // The POSTed UPDATE should be Encrypted JSON
@@ -196,7 +196,7 @@ class Profile extends Base
 				return $RES->withJSON([
 					'data' => null,
 					'meta' => [ 'note' => 'Invalid Content Type [PCP-182]' ]
-				], 403);
+				], 400);
 		}
 
 		$profile = [];

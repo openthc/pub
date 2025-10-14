@@ -282,7 +282,7 @@ class Message extends Base
 	/**
 	 * Writing to the Endpoint w/o Message Authorization Creates a Message to this Profile
 	 * Writing to the Endpoint w/Message Authorization and Matching MESSAGE_KEY Updates the Message to this Profile
-	 *    Or do we allow to write ONCE
+	 *    Or do we allow to write ONCE?
 	 */
 	function putAsProfile($REQ, $RES, $ARG, $chk_auth, $msg)
 	{

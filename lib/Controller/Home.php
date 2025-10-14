@@ -47,7 +47,6 @@ class Home extends Base
 		// $profile_pk = \OpenTHC\Sodium::b64encode($profile_pk);
 		// $readme_html = str_replace('$PROFILE_PK', $profile_pk, $readme_html);
 
-
 		return <<<HTML
 		<!DOCTYPE html>
 		<html lang="en-us">
@@ -55,7 +54,7 @@ class Home extends Base
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<meta name="theme-color" content="#069420">
-		<link rel="stylesheet" href="https://openthc.com/vendor/bootstrap/bootstrap.min.css">
+		<link rel="stylesheet" href="/vendor/bootstrap/bootstrap.min.css">
 		<title>OpenTHC :: Pub</title>
 		<style>
 		#img-wrap {
@@ -69,9 +68,6 @@ class Home extends Base
 		footer {
 			margin: 12vh 2vw 0 2vw;
 		}
-		h1, h2, h3 {
-			margin: 0.75rem 0 0.50rem 0;
-		}
 		header h1, header h2 {
 			text-align: center;
 		}
@@ -83,10 +79,9 @@ class Home extends Base
 			margin: 0 0 1vh 0;
 		}
 		pre {
-			background: #ccc;
-			color: #000;
-			margin: 0;
-			padding: 0.5rem;
+			background: #333;
+			color: #eee;
+			padding: 0.25rem;
 		}
 		</style>
 		</head>

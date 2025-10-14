@@ -142,7 +142,7 @@ class Update_Test extends \OpenTHC\Pub\Test\Base
 		];
 
 		$res = $this->_curl_post($req_path, $req_head, $req_body);
-		$this->assertEquals(403, $res['code']);
+		$this->assertEquals(401, $res['code']);
 		$this->assertEquals('application/json', $res['type']);
 		$this->assertNotEmpty($res['body']);
 
@@ -154,6 +154,5 @@ class Update_Test extends \OpenTHC\Pub\Test\Base
 		$this->assertEquals('Invalid Request [PCB-046]', $obj->meta->note);
 
 	}
-
 
 }

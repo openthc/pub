@@ -12,7 +12,7 @@ use OpenTHC\Sodium;
 class Base extends \OpenTHC\Controller\Base
 {
 	/**
-	 * Get Auth Params
+	 * Get Auth Params - decryptClientAuthData()
 	 */
 	function authClientVerify()
 	{
@@ -40,7 +40,7 @@ class Base extends \OpenTHC\Controller\Base
 		$client_auth = Sodium::decrypt($client_auth, \OpenTHC\Config::get('openthc/pub/secret'), $client_pk);
 		if (empty($client_auth)) {
 			return [
-				'code' => 403,
+				'code' => 401,
 				'data' => null,
 				'meta' => [ 'note' => 'Invalid Request [PCB-046]' ]
 			];
@@ -48,14 +48,38 @@ class Base extends \OpenTHC\Controller\Base
 		$client_auth = json_decode($client_auth);
 		if (empty($client_auth)) {
 			return [
-				'code' => 403,
+				'code' => 401,
 				'data' => null,
-				'meta' => [ 'note' => 'Invalid Request [PCP-137]' ]
+				'meta' => [ 'note' => 'Invalid Request [PCB-053]' ]
 			];
 		}
 
 		// Do I trust this PK? That's a Lookup Somewhere
+		// $mode = \OpenTHC\Config::get('openthc/pub/profile');
+		// switch ($mode) {
+		// 	case 'create':
+		// 		// Allow (only on Profiel Create Request)
+		// 		break;
+		// 	case 'verify':
+		// 		// Do Lookup
+		// 		break;
+		// }
 		// $rdb = _rdb();
+		// $key = sprintf('/pub/profile/%s', $client_pk);
+		// $chk = $rdb->get($key);
+		// if (empty($chk)) {
+		// 	$dbc = _dbc();
+		// 	$chk = $dbc->fetchRow('SELECT * FROM profile WHERE id = :pk', [
+		// 		':pk' => $client_pk
+		// 	]);
+		// }
+		// if (empty($chk)) {
+		// 	return [
+		// 		'code' => 401,
+		// 		'data' => null,
+		// 		'meta' => [ 'note' => 'Invalid Profile [PCB-071]' ]
+		// 	];
+		// }
 
 		return [
 			'code' => 200,
@@ -63,33 +87,6 @@ class Base extends \OpenTHC\Controller\Base
 			'meta' => [],
 		];
 
-		// Needs Profile Auth
-		if (empty($client_ab->profile)) {
-			return $RES->withJSON([
-				'data' => null,
-				'meta' => [ 'note' => 'Invalid Request [PCP-132]' ]
-			], 400);
-		}
-
-		$profile_pk = $ARG['pk'];
-		$profile_auth_bin = Sodium::b64decode($client_ab->profile);
-		$profile_auth = Sodium::decrypt($profile_auth_bin, \OpenTHC\Config::get('openthc/pub/secret'), $profile_pk);
-		if (empty($profile_auth)) {
-			return $RES->withJSON([
-				'data' => null,
-				'meta' => [ 'note' => 'Invalid Profile [PCP-142]' ]
-			], 403);
-		}
-		// Are the Contents of the Decrypted Thing what we want?
-		// (we want the content of the box to be the pk of the sk that encrypted the box)
-		if (sodium_compare($profile_pk, $profile_auth) !== 0) {
-			return $RES->withJSON([
-				'data' => null,
-				'meta' => [ 'note' => 'Invalid Profile [PCM-142]' ]
-			], 403);
-		}
-
-		return $RES;
 	}
 
 	/**

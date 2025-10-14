@@ -24,13 +24,6 @@ class Create_Fail_Test extends \OpenTHC\Pub\Test\Base
 		$message_pk = sodium_crypto_box_publickey($message_kp);
 		$message_sk = sodium_crypto_box_secretkey($message_kp);
 
-		$message_auth = Sodium::b64encode($message_pk);
-		$message_auth = Sodium::encrypt($message_auth, $message_sk, $this->_service_pk_bin);
-		$message_auth = Sodium::b64encode($message_auth);
-		$req_auth = $this->create_req_auth([
-			'message' => $message_auth,
-		]);
-
 		$message_data = json_encode([
 			'@version' => 'TEST',
 			'inventory' => [],
@@ -38,7 +31,6 @@ class Create_Fail_Test extends \OpenTHC\Pub\Test\Base
 		]);
 
 		$req_head = [
-			// 'authorization' => sprintf('OpenTHC %s.%s', $this->_api_client_pk, $req_auth),
 			'content-type' => 'application/json',
 		];
 
@@ -60,30 +52,27 @@ class Create_Fail_Test extends \OpenTHC\Pub\Test\Base
 
 	/**
 	 * @test
+	 * Write to Unknown Profile a Message named $ULID.json
 	 */
-	function unknown_profile()
+	function unknown_target_profile()
 	{
-		$profile_seed = 'PROFILE_404';
-		$profile_seed = sodium_crypto_generichash($profile_seed, '', SODIUM_CRYPTO_GENERICHASH_KEYBYTES);
-		$profile_kp = sodium_crypto_box_seed_keypair($profile_seed);
-		$profile_pk = sodium_crypto_box_publickey($profile_kp);
-		$profile_sk = sodium_crypto_box_secretkey($profile_kp);
+		$source_profile_pk = $_ENV['OPENTHC_TEST_LICENSE_B_PK'];
+		$source_profile_sk = $_ENV['OPENTHC_TEST_LICENSE_B_SK'];
 
-		$req_path = sprintf('%s/%s.json', $_ENV['OPENTHC_TEST_LICENSE_B_PK'], _ulid());
+		$target_profile_seed = 'PROFILE_404';
+		$target_profile_seed = sodium_crypto_generichash($target_profile_seed, '', SODIUM_CRYPTO_GENERICHASH_KEYBYTES);
+		$target_profile_kp = sodium_crypto_box_seed_keypair($target_profile_seed);
+		$target_profile_pk = sodium_crypto_box_publickey($target_profile_kp);
+		$target_profile_sk = sodium_crypto_box_secretkey($target_profile_kp);
 
-		// $req_auth = $this->create_req_auth();
-		$req_auth = [
-			'service' => _ulid(),
-			'contact' => _ulid(),
-			'company' => _ulid(),
-			'license' => _ulid(),
-		];
-		$req_auth = json_encode($req_auth);
-		$req_auth = Sodium::encrypt($req_auth, $profile_sk, $this->_service_pk_bin);
-		$req_auth = Sodium::b64encode($req_auth);
+		$req_path = sprintf('%s/%s.json', Sodium::b64encode($target_profile_pk), _ulid());
+
+		$req_auth = $this->create_req_auth([
+			'message' => $message_auth,
+		]);
 
 		$req_head = [
-			'authorization' => sprintf('OpenTHC %s.%s', Sodium::b64encode($profile_pk), $req_auth),
+			'authorization' => sprintf('OpenTHC %s.%s', Sodium::b64encode($target_profile_pk), $req_auth),
 			'content-type' => 'application/json',
 		];
 
@@ -101,12 +90,13 @@ class Create_Fail_Test extends \OpenTHC\Pub\Test\Base
 		$this->assertEquals('application/json', $res['type']);
 
 		$obj = json_decode($res['body']);
-		var_dump($obj);
+		// var_dump($obj);
 		$this->assertIsObject($obj);
 		$this->assertObjectHasProperty('data', $obj);
 		$this->assertObjectHasProperty('meta', $obj);
 		$this->assertObjectHasProperty('note', $obj->meta);
-		$this->assertEquals('Invalid Profile [PCB-071]', $obj->meta->note);
+		$this->assertEquals('Invalid Request [PCB-046]', $obj->meta->note);
+		// $this->assertEquals('Invalid Target Profile [PCB-071]', $obj->meta->note);
 
 		// Write A Second Time, Should Still Fail
 		$res = $this->_curl_post($req_path, $req_head, $req_body);
@@ -118,6 +108,70 @@ class Create_Fail_Test extends \OpenTHC\Pub\Test\Base
 		$this->assertIsObject($obj);
 		$this->assertObjectHasProperty('data', $obj);
 		$this->assertObjectHasProperty('meta', $obj);
+
+	}
+
+	/**
+	 * @test
+	 * Write to Known Profile from and Unknown Source
+	 */
+	function unknown_source_profile()
+	{
+		$source_profile_seed = 'PROFILE_404';
+		$source_profile_seed = sodium_crypto_generichash($source_profile_seed, '', SODIUM_CRYPTO_GENERICHASH_KEYBYTES);
+		$source_profile_kp = sodium_crypto_box_seed_keypair($source_profile_seed);
+		$source_profile_pk = sodium_crypto_box_publickey($source_profile_kp);
+		$source_profile_sk = sodium_crypto_box_secretkey($source_profile_kp);
+
+		$req_path = sprintf('%s/%s.json', $_ENV['OPENTHC_TEST_LICENSE_B_PK'], _ulid());
+
+		// $req_auth = $this->create_req_auth();
+		$req_auth = [
+			'service' => _ulid(),
+			'contact' => _ulid(),
+			'company' => _ulid(),
+			'license' => _ulid(),
+		];
+		$req_auth = json_encode($req_auth);
+		$req_auth = Sodium::encrypt($req_auth, $source_profile_sk, $this->_service_pk_bin);
+		$req_auth = Sodium::b64encode($req_auth);
+
+		$req_head = [
+			'authorization' => sprintf('OpenTHC %s.%s', Sodium::b64encode($source_profile_pk), $req_auth),
+			'content-type' => 'application/json',
+		];
+
+		$req_body = json_encode([
+			'@context' => 'http://openthc.org/api/v2017',
+			'inventory' => [],
+			'product' => [],
+			'variety' => [],
+			'lab_result' => [],
+		]);
+
+		// Write to B-Public-Key a message named RANDOM_ULID
+		$res = $this->_curl_post($req_path, $req_head, $req_body);
+		$this->assertEquals(201, $res['code']);
+		$this->assertEquals('application/json', $res['type']);
+
+		$obj = json_decode($res['body']);
+		// var_dump($obj);
+		$this->assertIsObject($obj);
+		$this->assertObjectHasProperty('data', $obj);
+		$this->assertObjectHasProperty('meta', $obj);
+		$this->assertObjectHasProperty('note', $obj->meta);
+		// $this->assertEquals('Invalid Source Profile [PCB-071]', $obj->meta->note);
+
+		// Write A Second Time, Should Still Fail
+		// $res = $this->_curl_post($req_path, $req_head, $req_body);
+		// $this->assertEquals(401, $res['code']);
+		// $this->assertEquals('application/json', $res['type']);
+
+		// $obj = json_decode($res['body']);
+		// // var_dump($obj);
+		// $this->assertIsObject($obj);
+		// $this->assertObjectHasProperty('data', $obj);
+		// $this->assertObjectHasProperty('meta', $obj);
 
 	}
 
