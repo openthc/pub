@@ -1,0 +1,35 @@
+#
+#
+#
+
+pub.openthc.example.com {
+
+	root * /opt/openthc/pub/webroot/
+	log
+	encode
+	import common404
+	file_server
+
+	# PHP Everything Else
+	handle_path /* {
+		php_fastcgi unix//run/php/php7.4-fpm.sock {
+			try_files {path} {path}/index.html {path}/index.php /main.php
+		}
+	}
+
+	# Static only for /output
+	handle_path /output/* {
+		root * /opt/openthc/pub/webroot/output/
+	}
+
+	# Static only for /vendor
+	handle_path /vendor/* {
+		root * /opt/openthc/pub/webroot/vendor/
+	}
+
+	handle_errors {
+		respond "{err.status_code} {err.status_text}"
+	}
+
+
+}
