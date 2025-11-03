@@ -92,12 +92,10 @@ function _rdb()
 
 	if (empty($rdb)) {
 
-		$cfg = \OpenTHC\Config::get('database/pub');
-		// $rdb = \Redis();
-		// $cfg = \OpenTHC\Config::get('redis');
+		$cfg = \OpenTHC\Config::get('redis');
 		$rdb = new \Redis();
-		$rdb->connect('127.0.0.1', '6379');
-		// $rdb->connect($cfg['hostname'], $cfg['port']);
+		$rdb->connect($cfg['hostname'], $cfg['port']);
+		// $rdb->connect('127.0.0.1', '6379');
 
 	}
 

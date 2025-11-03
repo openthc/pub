@@ -34,13 +34,21 @@ class Base
 	{
 		$url = trim($url);
 		if ( ! preg_match('/^http/', $url)) {
-			echo $this->_alert_fail('Invalid Link; needs to start with <strong>http</strong>');
+			return [
+				'code' => 400,
+				'data' => [
+					'body' => '',
+				],
+				'meta' => [
+					'note' => 'Invalid Link; needs to start with <strong>http</strong>'
+				]
+			];
 		}
 
 		$req = _curl_init($url);
 		curl_setopt($req, CURLOPT_FOLLOWLOCATION, true);
 		curl_setopt($req, CURLOPT_MAXREDIRS, 2);
-		curl_setopt($req, CURLOPT_TIMEOUT, 8);
+		curl_setopt($req, CURLOPT_TIMEOUT, 4);
 		// Add Origin Header?
 		curl_setopt($req, CURLOPT_HTTPHEADER, [
 			sprintf('origin: https://pub.openthc.dev')

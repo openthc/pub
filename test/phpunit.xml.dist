@@ -25,6 +25,9 @@
 
 	<php>
 
+		<!-- PHPUnit populates $_ENV with these -->
+		<!-- And one can overwrite these values from standard process environment vars -->
+
 		<!-- Need to Create and Register -->
 		<env name="OPENTHC_TEST_API_CLIENT_PK" value="Q5QGG-2_2aZ4WoqtGMyCBIRR-YW9uUwKrYr4mCsjkzU" />
 		<env name="OPENTHC_TEST_API_CLIENT_SK" value="vW5pGOZRgtiDjoRtYr8a26ijNrJIGw5P83arAjjX30Y" />
@@ -44,6 +47,7 @@
 	<testsuites>
 		<testsuite name="All">
 			<file>System_Test.php</file>
+			<file>Config_Test.php</file>
 			<file>Profile/Create_Test.php</file>
 			<file>Profile/Create_Fail_Test.php</file>
 			<file>Profile/Update_Test.php</file>
@@ -61,5 +65,8 @@
 			<directory>Profile</directory>
 		</testsuite>
 	</testsuites>
+
+	<!-- XDEBUG_MODE=coverage (environment variable) or xdebug.mode=coverage (PHP configuration setting) has to be set -->
+	<!-- <coverage /> -->
 
 </phpunit>

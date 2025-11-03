@@ -14,11 +14,17 @@ $ret['database'] = [
 	]
 ];
 
+$ret['redis'] = [
+	'hostname' => '10.4.20.69',
+];
+
 $ret['openthc'] = [];
 $ret['openthc']['pub'] = [
 	'origin' => 'https://pub.openthc.example',
 	'public' => '',
 	'secret' => '',
+	'profile' => 'create', // 'create' | 'verify'
+	'message' => 'create', // 'create' | 'verify'
 ];
 
 return $ret;

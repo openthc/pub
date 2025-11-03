@@ -11,6 +11,8 @@ class B2B extends Base
 {
 	function verify()
 	{
+		$rdb = _rdb();
+
 		$doc = $this->doc;
 
 		$report = [];
@@ -45,35 +47,44 @@ class B2B extends Base
 		} else {
 			$report[] = $this->_report_info('B2B Transfer ID', __h($x));
 		}
-		unset($doc['transfer_id']);
 
 		$x = $doc['manifest_type'];
 		if ( ! preg_match('/(delivery|pick\-up|transporter)/', $x)) {
 			$report[] = $this->_report_fail('B2B Transfer Type', sprintf('Invalid Type: <strong>%s</strong>', __h($x)));
 		}
-		unset($doc['manifest_type']);
-
 
 		// From License
+		$good = true;
 		$x = $doc['from_license_number'];
 		if (empty($x)) {
+			$good = false;
 			$report[] = $this->_report_fail('Origin License', 'Missing License Number');
 		}
 		$x = $doc['from_license_name'];
 		if (empty($x)) {
+			$good = false;
 			$report[] = $this->_report_warn('Origin License', 'Missing License Name');
+		}
+		if ($good) {
+			$report[] = $this->_report_info('Origin License', sprintf('<code>%s</code> %s', $doc['from_license_number'], $doc['from_license_name']));
 		}
 
 		// To License
+		$good = true;
 		$x = $doc['to_license_number'];
 		if (empty($x)) {
+			$good = false;
 			$report[] = $this->_report_fail('Target License', 'Missing License Number');
 		}
 		$x = $doc['to_license_name'];
 		if (empty($x)) {
+			$good = false;
 			$report[] = $this->_report_warn('Target License', 'Missing License Name');
 		}
-		// to_license_type
+		if ($good) {
+			$report[] = $this->_report_info('Target License', sprintf('<code>%s</code> %s', $doc['to_license_number'], $doc['to_license_name']));
+		}
+		// to_license_type?
 
 		$key_list = [];
 		$key_list[] = 'created_at';
@@ -86,11 +97,7 @@ class B2B extends Base
 			if ( ! preg_match('/^\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}:\d{2}/', $x)) {
 				$report[] = $this->_report_warn('DateTime', sprintf('Value in <code>%s<code> is not valid ISO', $key));
 			}
-			unset($doc[$key]);
 		}
-
-		// integrator_data
-		// route
 
 		$this->_echo_report($report);
 
@@ -107,37 +114,32 @@ class B2B extends Base
 			} else {
 				$report[] = $this->_report_info('Inventory ID', __h($x));
 			}
-			unset($b2b_item['inventory_id']);
 
-			$x = $b2b_item['external_id'];
-			if ( ! empty($x)) {
+			if ( ! empty($b2b_item['external_id'])) {
+				if ($b2b_item['external_id'] != $b2b_item['inventory_id']) {
+					$report[] = $this->_report_warn('External ID', 'Does not match Inventory ID');
+
+				}
 				$report[] = $this->_report_info('External ID', 'Includes Optional <code>external_id</code>');
 			}
-			unset($b2b_item['external_id']);
 
 			$x = $b2b_item['product_sku'];
 			if ( ! empty($x)) {
 				$report[] = $this->_report_info('Product SKU', 'Includes Optional <code>product_sku</code>');
 			}
-			unset($b2b_item['product_sku']);
 
 			$x1 = $b2b_item['inventory_category'];
 			$x2 = $b2b_item['inventory_type'];
 			$report[] = $this->_report_info('Product Category / Type', sprintf('%s / %s', __h($x1), __h($x2)));
-			unset($b2b_item['inventory_category']);
-			unset($b2b_item['inventory_type']);
 
 			$report[] = $this->_report_info('Product Name', __h($b2b_item['product_name']));
-			unset($b2b_item['product_name']);
 			$report[] = $this->_report_info('Variety Name', __h($b2b_item['strain_name']));
-			unset($b2b_item['strain_name']);
 
 			// $x = floatval($b2b_item['qty']);
 
 			// line_price
 			if ( ! empty($b2b_item['lab_result_data']['lab_result_id'])) {
 				$report[] = $this->_report_info('Lab Result', $b2b_item['lab_result_data']['lab_result_id']);
-				unset($b2b_item['lab_result_data']['lab_result_id']);
 			}
 
 			// Lab Result Status
@@ -159,8 +161,6 @@ class B2B extends Base
 				$report[] = $this->_report_warn('Lab Result Status', sprintf('<strong>%s</strong>', __h($x1)));
 				break;
 			}
-			unset($b2b_item['lab_result_passed']);
-			unset($b2b_item['lab_result_data']['lab_result_status']);
 
 			// Lab Result Link
 			$x = $b2b_item['lab_result_link'];
@@ -169,54 +169,66 @@ class B2B extends Base
 			}
 
 			$url = $b2b_item['lab_result_link'];
-			$res = $this->_get($url);
-			$lab_data = json_decode($res['data']['body'], true);
-			// echo '<pre>';
-			// echo __h(json_encode($lab_data, JSON_PRETTY_PRINT));
-			// echo '</pre>';
+			$key = sprintf('pub/cache/%s', rawurlencode($url));
+			$lab_data = $rdb->get($key);
+			$lab_data = json_decode($lab_data, true);
+			if (empty($lab_data)) {
+				$res = $this->_get($url);
+				$lab_data = json_decode($res['data']['body'], true);
+				$rdb->set($key, $res['data']['body'], [ 'ex' => 86400 ]);
+			}
 			if (empty($lab_data) || ! is_array($lab_data)) {
 				$report[] = $this->_report_fail('Lab Result Data', 'Failed to Fetch Lab Link');
 			} else {
 				// $sub_verify = Lab($lab_data);
 				// $sub_report = $sub_verify->verify();
 			}
-			unset($b2b_item['lab_result_link']);
 
 			if (empty($b2b_item['lab_result_data']['coa'])) {
 				$report[] = $this->_report_warn('Lab Result COA', 'Not Included');
 			} else {
 
-				$x = $b2b_item['lab_result_data']['coa'];
-				$report[] = $this->_report_info('Lab Result COA', sprintf('<a href="?source=%s" target="_blank">%s</a>', __h($x), __h($x)));
-				// $t0 = microtime(true);
-				$res = $this->_get($x);
+				$url = $b2b_item['lab_result_data']['coa'];
+				$report[] = $this->_report_info('Lab Result COA', sprintf('<a href="?source=%s" target="_blank">%s</a>', __h($url), __h($url)));
 
-				// echo '<pre>';
-				// echo __h(json_encode($res, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-				// echo '</pre>';
-				// exit;
+				$key = sprintf('pub/cache/%s', rawurlencode($url));
+				$coa_data = $rdb->get($key);
+				$coa_data = json_decode($coa_data, true);
+				if (empty($coa_data)) {
+					$res = $this->_get($url);
+					$coa_data = [
+						'code' => $res['code'],
+						'data' => [
+							'body' => substr($res['data']['body'], 0, 8)
+						],
+						'meta' => [
+							'content_type' => $res['meta']['content_type']
+						]
+					];
+					$rdb->set($key, json_encode($coa_data), [ 'ex' => 86400 ]);
+				}
 
 				// $t1 = microtime(true);
-				switch ($res['code']) {
+				switch ($coa_data['code']) {
+				case 0:
+					$report[] = $this->_report_fail('Lab Result COA Data', 'Connection to Server Failed');
+					break;
 				case 200:
-					switch ($res['meta']['content_type']) {
+					switch ($coa_data['meta']['content_type']) {
 					case 'application/pdf':
-						$buf = substr($res['data']['body'], 0, 8);
+						$buf = substr($coa_data['data']['body'], 0, 8);
 						$report[] = $this->_report_good('Lab Result COA Data', sprintf('Valid PDF Type: %s', __h($buf)));
 						break;
 					default:
-						$report[] = $this->_report_warn('Lab Result COA Data', sprintf('Invalid HTTP Content Type %s', $res['meta']['content_type']));
+						$report[] = $this->_report_warn('Lab Result COA Data', sprintf('Invalid HTTP Content Type %s', $coa_data['meta']['content_type']));
 					}
 					// OK
 					break;
 				default:
-					$report[] = $this->_report_warn('Lab Result COA Data', sprintf('Invalid HTTP Response Code %d', $res['code']));
+					$report[] = $this->_report_warn('Lab Result COA Data', sprintf('Invalid HTTP Response Code %d', $coa_data['code']));
 					break;
 				}
-				// $this->_report_info('Lab Result COA',
-				// unset($res['data']['body']);
 			}
-			unset($b2b_item['lab_result_data']['coa']);
 
 			if (empty($b2b_item['lab_result_data']['potency'])) {
 				$report[] = $this->_report_warn('Lab Result Potency Data', 'Not Included');
@@ -241,26 +253,10 @@ class B2B extends Base
 				$report[] = $this->_report_info('Lab Result Potency Data', $tab);
 			}
 
-			// $v = sprintf('<pre>%s</pre>', __h(json_encode($b2b_item, JSON_PRETTY_PRINT)));
-			// $report[] = $this->_report_info('B2B Item Dump', $v);
-
-//     "created_at": "2025-01-30T18:33:19+0000",
-//     "updated_at": "2025-02-04T03:43:31+0000",
-//     "uom": "ea",
-//     "unit_weight": 1.2,
-//     "unit_weight_uom": "g",
-//     "sample_type": null,
-//     "line_price": 255,
-//     "is_medical": false,
-//     "is_sample": false,
-// is_for_extraction
-
 			$this->_echo_report($report);
 
 			echo '</div>';
 		}
-
-		// echo '<pre>' . __h(json_encode($doc, JSON_PRETTY_PRINT)) . '</pre>';
 
 	}
 }

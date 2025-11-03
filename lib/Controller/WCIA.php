@@ -27,9 +27,6 @@ class WCIA extends Base
 	 */
 	function post($REQ, $RES, $ARG)
 	{
-		// var_dump($_POST);
-		// var_dump($_FILES);
-
 		// Prefer Link
 		if ( ! empty($_POST['wcia-link'])) {
 

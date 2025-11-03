@@ -28,7 +28,6 @@ class System_Test extends Base
 		$this->assertNotEmpty($this->_service_sk_b64);
 		$this->assertNotEmpty($this->_service_sk_bin);
 
-
 	}
 
 	/**
@@ -63,6 +62,5 @@ class System_Test extends Base
 		// $this->assertEquals('/pk', $res['data']['link']);
 
 	}
-
 
 }
