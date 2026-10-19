@@ -1,18 +1,16 @@
 {
 	"name": "openthc/pub",
 	"description": "OpenTHC Data Publisher",
-	"license": "MIT",
+	"license": "GPL-3.0-only",
+	"version": "420.26.288",
 	"autoload": {
-		"exclude-from-classmap": [
-			"vendor/erusev/parsedown-extra/test"
-		],
 		"psr-4": {
 			"OpenTHC\\Pub\\": "./lib",
 			"OpenTHC\\Pub\\Test\\": "./test"
 		}
 	},
 	"require": {
-		"openthc/common": "dev-main"
+		"openthc/common": "v2026.288.1"
 	},
 	"require-dev": {
 		"phpmd/phpmd": "2.15.0",
