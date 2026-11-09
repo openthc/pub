@@ -10,7 +10,7 @@
 		}
 	},
 	"require": {
-		"openthc/common": "v2026.288.1"
+		"openthc/common": "dev-debian-13"
 	},
 	"require-dev": {
 		"phpmd/phpmd": "2.15.0",
