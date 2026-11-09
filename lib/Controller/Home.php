@@ -16,7 +16,8 @@ class Home extends Base
 	 */
 	function __invoke($REQ, $RES, $ARG)
 	{
-		return $RES->write($this->render());
+		$RES->getBody()->write($this->render());
+		return $RES;
 	}
 
 	/***

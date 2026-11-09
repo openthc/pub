@@ -15,7 +15,7 @@ set_exception_handler('_eh');
 
 $cfg = [];
 $cfg['debug'] = true;
-$app = new \OpenTHC\App($cfg);
+$app =\OpenTHC\App::factory(); // ($cfg);
 
 $app->get('/home', 'OpenTHC\Pub\Controller\Home');
 

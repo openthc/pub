@@ -10,11 +10,12 @@
 		}
 	},
 	"require": {
-		"openthc/common": "dev-debian-13"
+		"openthc/common": "dev-debian-13",
+		"php-di/php-di": "7.0.7"
 	},
 	"require-dev": {
 		"phpmd/phpmd": "2.15.0",
-		"phpstan/phpstan": "2.1.8",
-		"phpunit/phpunit": "9.6.20"
+		"phpstan/phpstan": "2.3.1",
+		"phpunit/phpunit": "12.5.8"
 	}
 }

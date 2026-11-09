@@ -49,6 +49,9 @@ function _eh($ex, $em=null, $ef=null, $el=null, $ec=null) {
 		$msg[] = sprintf('File: ...%s:%d', $ef, $el);
 	}
 
+	$msg[] = '---';
+	$msg[] = $exception->getTraceAsString();
+
 	error_log(implode('; ', $msg));
 
 	echo implode("\n", $msg);
