@@ -69,5 +69,5 @@ $dbc->query('CREATE TABLE message (id PRIMARY KEY, created_at TEXT DEFAULT CURRE
 # END;
 # EOF
 
-chown(sprintf('%s/var/pub.sqlite', __DIR__), 'www-data');
-chgrp(sprintf('%s/var/pub.sqlite', __DIR__), 'www-data');
+// chown(sprintf('%s/var/pub.sqlite', __DIR__), 'www-data');
+// chgrp(sprintf('%s/var/pub.sqlite', __DIR__), 'www-data');

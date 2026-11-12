@@ -1527,12 +1527,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/openthc/common.git",
-                "reference": "6de8983f6f0d23e1658467c8ff7307a670ba6f87"
+                "reference": "0aa9821fddad8c42653064e14c118c255dab5ed3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/openthc/common/zipball/6de8983f6f0d23e1658467c8ff7307a670ba6f87",
-                "reference": "6de8983f6f0d23e1658467c8ff7307a670ba6f87",
+                "url": "https://api.github.com/repos/openthc/common/zipball/0aa9821fddad8c42653064e14c118c255dab5ed3",
+                "reference": "0aa9821fddad8c42653064e14c118c255dab5ed3",
                 "shasum": ""
             },
             "require": {
@@ -1582,7 +1582,7 @@
                 "issues": "https://github.com/openthc/common/issues",
                 "source": "https://github.com/openthc/common/tree/debian-13"
             },
-            "time": "2026-11-09T17:54:06+00:00"
+            "time": "2026-11-09T19:28:38+00:00"
         },
         {
             "name": "php-di/invoker",

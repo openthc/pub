@@ -50,7 +50,7 @@ function _eh($ex, $em=null, $ef=null, $el=null, $ec=null) {
 	}
 
 	$msg[] = '---';
-	$msg[] = $exception->getTraceAsString();
+	$msg[] = $ex->getTraceAsString();
 
 	error_log(implode('; ', $msg));
 
